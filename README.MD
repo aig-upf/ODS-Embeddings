@@ -69,7 +69,7 @@ If we replace each node by their degrees, we get:
        2
 ```
 
-So the resulting ordered degree set is: `{1, 2, 2, 3, 4}`.
+So the resulting ordered degree sequence is: `{1, 2, 2, 3, 4}`.
 
 # Contact
 
