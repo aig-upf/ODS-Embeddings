@@ -19,8 +19,8 @@ to the overall structural label.
 # Repository Overview
 
 The code provided is based on the reference 
-![node2vec implementation](https://github.com/aditya-grover/node2vec). To use FastText, follow the 
-steps defined in ![the FastText python documentation on 
+[node2vec implementation](https://github.com/aditya-grover/node2vec). To use FastText, follow the 
+steps defined in [the FastText python documentation on 
 Github](https://github.com/facebookresearch/fastText/tree/master/python). When up and running, you 
 can run ODSE by simply passing:
 
@@ -73,5 +73,5 @@ So the resulting ordered degree set is: `{1, 2, 2, 3, 4}`.
 
 # Contact
 
-Please contact ![nalvarez@ntent.com](mailto:nalvarez@ntent.com) if you have any questions 
+Please contact [nalvarez@ntent.com](mailto:nalvarez@ntent.com) if you have any questions 
 regarding ODSE.
