@@ -66,7 +66,7 @@ def compute_string_labels(G, d, t, log_string_lengths):
     return G
 
 
-def preprocess_graph(G, d, include_center=True, num_processes=0, log_string_lengths=True):
+def preprocess_graph(G, d, include_center=False, num_processes=0, log_string_lengths=True):
     G = compute_degree_counts(G, d, include_center, num_processes)
     D = compute_global_degree_set(G)
     t = build_degree_table(D)

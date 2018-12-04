@@ -69,7 +69,36 @@ If we replace each node by their degrees, we get:
        2
 ```
 
-So the resulting ordered degree sequence is: `{1, 2, 2, 3, 4}`.
+So the resulting ordered degree sequence is: `{1, 2, 2, 3, 4}`. A possible extension, already 
+covered in the provided implementation, is to ignore the degree of the source node. In the case 
+where `k=1`, the degree of the source node is that of the length of the sequence, and might not 
+add significant structural information. In our previous example, the resulting ordered degree 
+sequence would then be `{1, 2, 2, 3}`.
+
+# Representing an ODS as a String
+
+To build a language model, each structural label must be turned into a string. A string 
+representation is mostly needed so that we can leverage existing language modelling algorithms
+such as word2vec, GloVe or FastText. Our structural labels encode some degree of information about
+the neighbourhood in which a given node lives. We want to maintain the notion that a given degree
+shows up with some total frequency among our peers.
+
+Strings are made up of letters: we must first select an appropriate alphabet for our strings. In
+our case, we define a mapping `M(deg): N —> U` that assigns an Unicode codepoint to every possible
+integer degree seen in any of our neighbourhoods. As long as the assigned codepoints are not
+considered spacing by the target algorithm, any arbitrary mapping will work.
+
+To maintain the notion of degree frequency, we define a repetition function `R(freq): N -> N`. 
+`R` takes the frequency of a given degree in an ordered degree sequence and returns how much its
+letter representation should be repeated in the target string. Using `M` and `R`, we can 
+define the structural string `S` given the sorted list of degrees `D` and their corresponding
+frequencies `F`:
+
+```
+S = M(D_1) * R(F_1) + M(D_2) * R(F_2) + ... + M(D_n) * R(F_n)
+```
+
+With `A * R` denoting repeat `A` exactly `R` times and `+` standing for string concatenation.
 
 # Contact
 

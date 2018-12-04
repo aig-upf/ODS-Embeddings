@@ -49,8 +49,8 @@ def parse_args():
     parser.add_argument('--num-walks', type=int, default=10,
                         help='Number of walks per source. Default is 10.')
 
-    parser.add_argument('--window-size', type=int, default=2,
-                        help='Context size for optimization. Default is 2.')
+    parser.add_argument('--window-size', type=int, default=3,
+                        help='Context size for optimization. Default is 3.')
 
     parser.add_argument('--iter', default=10, type=int,
                       help='Number of epochs')
@@ -76,8 +76,8 @@ def parse_args():
     parser.add_argument('--weighted', dest='weighted', action='store_true',
                         help='Boolean specifying (un)weighted. Default is unweighted.')
 
-    parser.add_argument('--nocenter', dest='nocenter', action='store_true',
-                        help='Boolean specifying if the degree of the ego network source is skipped. Default is false.')
+    parser.add_argument('--center', dest='center', action='store_true',
+                        help='Boolean specifying if the degree of the ego network source is used. Default is false.')
 
     parser.add_argument('--intlengths', dest='intlengths', action='store_true',
                         help='Boolean specifying if the lengths of the degrees in the ordered degree sequences should be int instead of logarithm. Default is false.')
@@ -144,7 +144,7 @@ def main(args):
 
         # generate structural labels
         if not args.nostruct:
-            m = G.compute_structural_labels(args.structdist, args.nocenter, args.workers, not args.intlengths)
+            m = G.compute_structural_labels(args.structdist, args.center, args.workers, not args.intlengths)
 
             # dump file if necessary
             if args.labelfile:
