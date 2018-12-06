@@ -116,12 +116,12 @@ structural label. A full random walk will be a _sentence_ in our text corpus. Ou
 be formed by many such walks, starting from every possible node. 
 
 The last step in our algorithm is to actually learn a language model on the random-walk corpus.
-Following that of node2vec, we optimize a negative sampling skipgram objective in which the model 
-is meant to correctly predict whether or not a word —a structural label, in our case— can appear 
-in the vicinity of our target word —in our context, a source node—. The maximum distance at which 
-a node is considered to be in the vicinity of a node is a hyperparameter, directly translated
-into the language model terminology as the size of the context window. Our task, formally, is to 
-minimize binary cross-entropy objective:
+Following that of node2vec, we optimize a negative sampling skipgram objective. This means that
+the model is meant to correctly predict whether or not a word —a structural label, in our case— 
+can appear in the vicinity of a target word, a source node. The maximum distance at which a node 
+is considered to be in the vicinity  of a node is a hyperparameter, directly translated into the 
+language model terminology as the size of the context window. Our task, formally, is to minimize 
+the binary cross-entropy objective:
 
 ```
 −(y^t * log(y^p) + (1 − y^t) * log(1 − y^p))
@@ -142,11 +142,14 @@ node2vec, each `e_i` would be a learned vector. However, our structural labels i
 information, information that FastText is capable of capturing when represented as ordered degree
 sequence strings. For a given embedding `e_i`, we will average the sum of both the global 
 structural embedding `G_i` that corresponds to the label itself and the embeddings of the `M` 
-co-occurring degree ngrams `c_ij | 1 <= j <= M` in the label string, as follows:
+co-occurring degree N-grams `c_{ij} | 1 <= j <= M` in the label string, as follows:
 
 ```
 e_i = \frac{G_i + \sum_{j=1}^{M} c_{ij}}{1 + M}
 ```
+
+The learning procedure must learn both the global structural embedding and the shared, 
+degree-gram components. 
 
 # Contact
 
