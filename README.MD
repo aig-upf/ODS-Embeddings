@@ -134,7 +134,7 @@ embedding. With `e_i` standing for the representation of `n_i`, our skipgram mod
 parameters so that for a pair of embeddings `<e_i, e_j>`, the following holds:
 
 ```
-sigmoid(w * (e_i \cdot \e_j) + b) = y_t
+σ(w * (e_i · e_j) + b) = y_t
 ```
 
 The only missing piece of the puzzle is the underlying process to learn such embeddings. In 
@@ -145,7 +145,7 @@ structural embedding `G_i` that corresponds to the label itself and the embeddin
 co-occurring degree ngrams `c_ij | 1 <= j <= M` in the label string, as follows:
 
 ```
-e_i = \frac{G_i + \sum_{j=1}^{M} c_ij}{1 + M}
+e_i = \frac{G_i + \sum_{j=1}^{M} c_{ij}}{1 + M}
 ```
 
 # Contact
