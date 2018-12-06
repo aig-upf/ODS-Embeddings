@@ -98,7 +98,55 @@ frequencies `F`:
 S = M(D_1) * R(F_1) + M(D_2) * R(F_2) + ... + M(D_n) * R(F_n)
 ```
 
-With `A * R` denoting repeat `A` exactly `R` times and `+` standing for string concatenation.
+With `A * R` denoting repeat `A` exactly `R` times and `+` standing for string concatenation. A
+more general approach merges both `M` and `R` into a function `Z(deg, freq): N -> N -> U^*` that 
+is in charge of generating the representational string for a `<degree, frequency>` pair. This 
+may allow for frequent pairs to be mapped into a single token, creating a different language 
+model altogether.
+
+# Learning Structural Representations
+
+Every node is given a structural label that we now use when training a language model. Currently, 
+this means learning a [FastText language model](https://fasttext.cc). To generate a text corpus, 
+we run a node2vec style random-walk with controlling parameters `p` and `q`. Those parameters 
+are further discussed in the node2vec paper, but they can be understood as a mechanism to control
+how close or far away from the initial node we should go. The random-walk is a way of capturing 
+neighbourhood dependencies on the graph: for every node we traverse, we will display its 
+structural label. A full random walk will be a _sentence_ in our text corpus. Our corpus will 
+be formed by many such walks, starting from every possible node. 
+
+The last step in our algorithm is to actually learn a language model on the random-walk corpus.
+Following that of node2vec, we optimize a negative sampling skipgram objective in which the model 
+is meant to correctly predict whether or not a word —a structural label, in our case— can appear 
+in the vicinity of our target word —in our context, a source node—. The maximum distance at which 
+a node is considered to be in the vicinity of a node is a hyperparameter, directly translated
+into the language model terminology as the size of the context window. Our task, formally, is to 
+minimize binary cross-entropy objective:
+
+```
+−(y^t * log(y^p) + (1 − y^t) * log(1 − y^p))
+```
+
+Given a pair of nodes `<n_s, n_t>` where `n_s` is the source node, `n_t` is the target node that 
+may or may not be in the neighbourhood of `n_s`, and `y^t` is the true label of such relationship.
+To do so, we represent each structural label as a `R^d` vector, its corresponding structural 
+embedding. With `e_i` standing for the representation of `n_i`, our skipgram model must learn the
+parameters so that for a pair of embeddings `<e_i, e_j>`, the following holds:
+
+```
+sigmoid(w * (e_i \cdot \e_j) + b) = y_t
+```
+
+The only missing piece of the puzzle is the underlying process to learn such embeddings. In 
+node2vec, each `e_i` would be a learned vector. However, our structural labels include additional 
+information, information that FastText is capable of capturing when represented as ordered degree
+sequence strings. For a given embedding `e_i`, we will average the sum of both the global 
+structural embedding `G_i` that corresponds to the label itself and the embeddings of the `M` 
+co-occurring degree ngrams `c_ij | 1 <= j <= M` in the label string, as follows:
+
+```
+e_i = \frac{G_i + \sum_{j=1}^{M} c_ij}{1 + M}
+```
 
 # Contact
 
