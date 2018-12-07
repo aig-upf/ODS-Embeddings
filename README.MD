@@ -172,7 +172,7 @@ N-gram embeddings (c):
 
 Our complete representation is:
 
-![r_{1223} = \frac{v_{1223} + c_1 + c_2 + c_2 + c_3}{5}](https://latex.codecogs.com/gif.latex?r_%7B1223%7D%20%3D%20%5Cfrac%7Bv_%7B1223%7D%20&plus;%20c_1%20&plus;%20c_2%20&plus;%20c_2%20&plus;%20c_3%7D%7B5%7D). 
+![r_{1223} = \frac{v_{1223} + c_1 + c_2 + c_2 + c_3}{5}](https://latex.codecogs.com/gif.latex?r_%7B1223%7D%20%3D%20%5Cfrac%7Bv_%7B1223%7D%20&plus;%20c_1%20&plus;%20c_2%20&plus;%20c_2%20&plus;%20c_3%7D%7B5%7D)
 
 That is, the resulting vector is: 
 
