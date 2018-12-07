@@ -176,7 +176,7 @@ Our complete representation is:
 
 That is, the resulting vector is: 
 
-![\frac{\langle2 - 1 + 1 + 1 + 1, -1 + 0 -1 + -1 + 0, -1 + 1 + 0 + 0 - 2\rangle}{5} =  <\frac{4}{5}, \frac{-3}{5}, \frac{-2}{5}>](https://latex.codecogs.com/gif.latex?%5Cfrac%7B%5Clangle2%20-%201%20&plus;%201%20&plus;%201%20&plus;%201%2C%20-1%20&plus;%200%20-1%20&plus;%20-1%20&plus;%200%2C%20-1%20&plus;%201%20&plus;%200%20&plus;%200%20-%202%5Crangle%7D%7B5%7D%20%3D%20%3C%5Cfrac%7B4%7D%7B5%7D%2C%20%5Cfrac%7B-3%7D%7B5%7D%2C%20%5Cfrac%7B-2%7D%7B5%7D%3E)
+![\frac{\langle2 - 1 + 1 + 1 + 1, -1 + 0 -1 + -1 + 0, -1 + 1 + 0 + 0 - 2\rangle}{5} =  \langle\frac{4}{5}, \frac{-3}{5}, \frac{-2}{5}\rangle](https://latex.codecogs.com/gif.latex?%5Cfrac%7B%5Clangle2%20-%201%20&plus;%201%20&plus;%201%20&plus;%201%2C%20-1%20&plus;%200%20-1%20&plus;%20-1%20&plus;%200%2C%20-1%20&plus;%201%20&plus;%200%20&plus;%200%20-%202%5Crangle%7D%7B5%7D%20%3D%20%5Clangle%5Cfrac%7B4%7D%7B5%7D%2C%20%5Cfrac%7B-3%7D%7B5%7D%2C%20%5Cfrac%7B-2%7D%7B5%7D%5Crangle)
 
 # Contact
 
