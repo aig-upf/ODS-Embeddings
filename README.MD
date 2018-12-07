@@ -94,9 +94,7 @@ letter representation should be repeated in the target string. Using `M` and `R`
 define the structural string `S` given the sorted list of degrees `D` and their corresponding
 frequencies `F`:
 
-```
-S = M(D_1) * R(F_1) + M(D_2) * R(F_2) + ... + M(D_n) * R(F_n)
-```
+![S = M(D_1) * R(F_1) + M(D_2) * R(F_2) + ... + M(D_n) * R(F_n)](https://latex.codecogs.com/gif.latex?S%20%3D%20M%28D_1%29%20*%20R%28F_1%29%20&plus;%20M%28D_2%29%20*%20R%28F_2%29%20&plus;%20...%20&plus;%20M%28D_n%29%20*%20R%28F_n%29)
 
 With `A * R` denoting repeat `A` exactly `R` times and `+` standing for string concatenation. A
 more general approach merges both `M` and `R` into a function `Z(deg, freq): N -> N -> U^*` that 
@@ -123,33 +121,62 @@ is considered to be in the vicinity  of a node is a hyperparameter, directly tra
 language model terminology as the size of the context window. Our task, formally, is to minimize 
 the binary cross-entropy objective:
 
-```
-−(y^t * log(y^p) + (1 − y^t) * log(1 − y^p))
-```
+![-(y_t * log(y_p) + (1 - y_t) * log(1 - y_p))](https://latex.codecogs.com/gif.latex?-%28y_t%20*%20log%28y_p%29%20&plus;%20%281%20-%20y_t%29%20*%20log%281%20-%20y_p%29%29)
 
 Given a pair of nodes `<n_s, n_t>` where `n_s` is the source node, `n_t` is the target node that 
-may or may not be in the neighbourhood of `n_s`, and `y^t` is the true label of such relationship.
-To do so, we represent each structural label as a `R^d` vector, its corresponding structural 
-embedding. With `e_i` standing for the representation of `n_i`, our skipgram model must learn the
-parameters so that for a pair of embeddings `<e_i, e_j>`, the following holds:
+may or may not be in the neighbourhood of `n_s`, and `y_t` is the binary label of such 
+relationship. To do so, we represent each structural label as a `R^d` vector, its corresponding 
+structural embedding. With `r_i` standing for the representation of `n_i`, our skipgram model must
+learn the parameters so that for a pair of embeddings `<r_i, r_j>`, the following holds:
 
-```
-σ(w * (e_i · e_j) + b) = y_t
-```
+![\sigma(w * (r_i \cdot  r_j) + b) = y_t](https://latex.codecogs.com/gif.latex?%5Csigma%28w%20*%20%28r_i%20%5Ccdot%20r_j%29%20&plus;%20b%29%20%3D%20y_t)
 
 The only missing piece of the puzzle is the underlying process to learn such embeddings. In 
-node2vec, each `e_i` would be a learned vector. However, our structural labels include additional 
+node2vec, each `r_i` would be a learned vector. However, our structural labels include additional 
 information, information that FastText is capable of capturing when represented as ordered degree
-sequence strings. For a given embedding `e_i`, we will average the sum of both the global 
+sequence strings. For a given embedding `r_i`, we will average the sum of both the global 
 structural embedding `G_i` that corresponds to the label itself and the embeddings of the `M` 
 co-occurring degree N-grams `c_{ij} | 1 <= j <= M` in the label string, as follows:
 
-```
-e_i = \frac{G_i + \sum_{j=1}^{M} c_{ij}}{1 + M}
-```
+![r_i = \frac{G_i + \sum_{j=1}^{M} c_{ij}}{1 + M}](https://latex.codecogs.com/gif.latex?r_i%20%3D%20%5Cfrac%7BG_i%20&plus;%20%5Csum_%7Bj%3D1%7D%5E%7BM%7D%20c_%7Bij%7D%7D%7B1%20&plus;%20M%7D)
 
 The learning procedure must learn both the global structural embedding and the shared, 
 degree-gram components. 
+
+# Example: Embedding a Structural Label
+
+The best way to grasp what the equations represent is by example. Consider the structural label for 
+node in our ASCII graph. For convenience, we map degrees to their numeric value and repeat them as 
+often as they appear in the structural label. In our model, this means that `R` is the identity 
+function, `R(freq) = freq`. The structural label then becomes `1223`, and we proceed to embed it. 
+
+For simplicity, we restrict the degree N-grams to a minimum and a maximum length of 1. Furthermore, 
+we limit our vectors to only have 3 components. Recall that the representation for label `1223` is 
+the average of both the global vector corresponding to 1223 and the sum of 4 N-gram vectors, 
+corresponding to `1`, `2`, `2` and `3` respectively. If we have the following embedding table:
+
+```
+Word embeddings (v):
+
+1123:  1  0  1
+1223:  2 -1 -1
+....
+
+N-gram embeddings (c):
+   1: -1  0  1
+   2:  1 -1  0
+   3:  1  0 -2
+   4: -1  0  1
+...
+```
+
+Our complete representation is:
+
+![r_{1223} = \frac{v_{1223} + c_1 + c_2 + c_2 + c_3}{5}](https://latex.codecogs.com/gif.latex?r_%7B1223%7D%20%3D%20%5Cfrac%7Bv_%7B1223%7D%20&plus;%20c_1%20&plus;%20c_2%20&plus;%20c_2%20&plus;%20c_3%7D%7B5%7D)
+
+That is, the resulting vector is: 
+
+![\frac{\langle2 - 1 + 1 + 1 + 1, -1 + 0 -1 + -1 + 0, -1 + 1 + 0 + 0 - 2\rangle}{5} =  \langle\frac{4}{5}, \frac{-3}{5}, \frac{-2}{5}\rangle](https://latex.codecogs.com/gif.latex?%5Cfrac%7B%5Clangle2%20-%201%20&plus;%201%20&plus;%201%20&plus;%201%2C%20-1%20&plus;%200%20-1%20&plus;%20-1%20&plus;%200%2C%20-1%20&plus;%201%20&plus;%200%20&plus;%200%20-%202%5Crangle%7D%7B5%7D%20%3D%20%5Clangle%5Cfrac%7B4%7D%7B5%7D%2C%20%5Cfrac%7B-3%7D%7B5%7D%2C%20%5Cfrac%7B-2%7D%7B5%7D%5Crangle)
 
 # Contact
 
