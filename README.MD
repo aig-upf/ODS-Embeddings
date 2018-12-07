@@ -146,7 +146,7 @@ degree-gram components.
 # Example: Embedding a Structural Label
 
 The best way to grasp what the equations represent is by example. Consider the structural label for 
-node in our ASCII graph. For simplicity, we map degrees to their numeric value and repeat them as 
+node in our ASCII graph. For convenience, we map degrees to their numeric value and repeat them as 
 often as they appear in the structural label. In our model, this means that `R` is the identity 
 function, `R(freq) = freq`. The structural label then becomes `1223`, and we proceed to embed it. 
 
