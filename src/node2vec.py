@@ -31,7 +31,7 @@ class Graph():
             cur_nbrs = sorted(G.neighbors(cur))
 
             if len(cur_nbrs) > 0:
-                if p == 1 and q == 1:
+                if alias_nodes is None or alias_edges is None:
                     index = random.randint(0, len(cur_nbrs) - 1)
                     walk.append(cur_nbrs[index])
                 elif len(walk) == 1:
