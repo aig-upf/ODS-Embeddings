@@ -11,10 +11,12 @@ Knowledge Discovery and Data Mining (KDD), 2016
 
 import io
 import os
+import sys
 import json
 import argparse
 import numpy as np
 import networkx as nx
+from multiprocessing import Pool
 import node2vec
 from fastText.FastText import train_unsupervised
 
@@ -53,7 +55,7 @@ def parse_args():
                         help='Context size for optimization. Default is 3.')
 
     parser.add_argument('--iter', default=10, type=int,
-                      help='Number of epochs')
+                      help='Number of epochs. If set to 0, no training is performed.')
 
     parser.add_argument('--workers', type=int, default=8,
                         help='Number of parallel workers. Default is 8.')
@@ -72,6 +74,9 @@ def parse_args():
 
     parser.add_argument('--q', type=float, default=1,
                         help='Inout hyperparameter. Default is 1.')
+
+    parser.add_argument('--verbose', type=int, default=1,
+                        help='Verbosity level. 0 for silent.')
 
     parser.add_argument('--weighted', dest='weighted', action='store_true',
                         help='Boolean specifying (un)weighted. Default is unweighted.')
@@ -131,30 +136,45 @@ def main(args):
     '''
     Pipeline for representational learning for all nodes in a graph.
     '''
+    def print_verbose(s):
+        if args.verbose > 0:
+            print(s)
+
     nx_G = read_graph()
     G = node2vec.Graph(nx_G, args.directed, args.p, args.q)
-    G.preprocess_transition_probs()
+    pool = Pool(processes=args.workers if args.workers > 1 else 1) 
+    print_verbose('-- Graph loaded.')
 
+    # load structural labels if they exist
+    if args.labelfile and os.path.exists(args.labelfile):
+        m = json.load(open(args.labelfile, 'r'))
+        print_verbose('-- Labels loaded from disk.')
+
+    # generate structural labels
+    if not args.nostruct:
+        m = G.compute_structural_labels(args.structdist, args.center, not args.intlengths, pool)
+        print_verbose('-- Labels generated from scratch.')
+
+        # dump file if necessary
+        if args.labelfile:
+            with open(args.labelfile, 'w') as f:
+                json.dump(m, f)
+
+    # generate random walk
     if not args.nowalk:
-        walks = G.simulate_walks(args.num_walks, args.walk_length, args.workers)
-
-        # load structural labels if ever existing
-        if args.labelfile and os.path.exists(args.labelfile):
-            m = json.load(open(args.labelfile, 'r'))
-
-        # generate structural labels
-        if not args.nostruct:
-            m = G.compute_structural_labels(args.structdist, args.center, args.workers, not args.intlengths)
-
-            # dump file if necessary
-            if args.labelfile:
-                with open(args.labelfile, 'w') as f:
-                    json.dump(m, f)
+        if args.p != 1 or args.q != 1:
+            G.preprocess_transition_probs(pool)
+        print_verbose('-- Transition probabilities ready.')
+        walks = G.simulate_walks(args.num_walks, args.walk_length, pool)
 
         # dump the walks
         with io.open(args.walkfile, 'w', encoding='utf8') as f:
             for walk in walks:
                 f.write(u' '.join(m[n] for n in walk) + u'\n')
+
+    if args.iter <= 0:
+        print_verbose('The number of training epochs is set to {} -- terminating without training!'.format(args.iter))
+        sys.exit(0)
     model = learn_embeddings(args)
 
 

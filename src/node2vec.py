@@ -1,6 +1,5 @@
 import numpy as np
 import networkx as nx
-from multiprocessing import Pool
 from preprocess import preprocess_graph
 import random
 
@@ -12,22 +11,30 @@ class Graph():
         self.p = p
         self.q = q
         self.t = {}
+        self.alias_nodes = None
+        self.alias_edges = None
+
 
     def node2vec_walk(self, walk_length, start_node):
         '''
         Simulate a random walk starting from start node.
         '''
         G = self.G
+        p = self.p
+        q = self.q
         alias_nodes = self.alias_nodes
         alias_edges = self.alias_edges
 
         walk = [start_node]
-
         while len(walk) < walk_length:
             cur = walk[-1]
             cur_nbrs = sorted(G.neighbors(cur))
+
             if len(cur_nbrs) > 0:
-                if len(walk) == 1:
+                if p == 1 and q == 1:
+                    index = random.randint(0, len(cur_nbrs) - 1)
+                    walk.append(cur_nbrs[index])
+                elif len(walk) == 1:
                     walk.append(cur_nbrs[alias_draw(alias_nodes[cur][0], alias_nodes[cur][1])])
                 else:
                     prev = walk[-2]
@@ -40,79 +47,62 @@ class Graph():
         return walk
 
 
-    def simulate_walks(self, num_walks, walk_length, workers):
+    def simulate_walks(self, num_walks, walk_length, workers_pool):
         '''
         Repeatedly simulate random walks from each node.
         '''
-        if workers <= 1:
-            print 'Walk iteration:'        
-            for walk_iter in range(num_walks):
-                print '{} / {}'.format(walk_iter + 1, num_walks)
-                return walk_iteration((self, walk_length))
-        else:
-            p = Pool(processes=workers)
-            iters = [(self, walk_length) for x in range(num_walks)]
-            iters_walks = p.map(walk_iteration, iters)
-            print 'Produced {} walks in parallel'.format(sum(map(len, iters_walks)))
-            return reduce(lambda x, y: x + y, iters_walks)
+        iters = [(self, walk_length) for x in range(num_walks)]
+        iters_walks = workers_pool.map(walk_iteration, iters)
+        return reduce(lambda x, y: x + y, iters_walks)
 
 
-    def get_alias_edge(self, src, dst):
+    def get_alias_nodes(self, workers_pool):
         '''
-        Get the alias edge setup lists for a given edge.
+        Returns the node to alias mappings.
+        '''
+        G = self.G
+        workers = workers_pool._processes
+        iters = [node for node in G.nodes()]
+        chunk = [(G, iters[x::workers]) for x in range(workers)]
+        chunk_alias = workers_pool.map(get_chunk_alias_nodes, chunk)
+        return {n: a for c in chunk_alias for (n, a) in c}
+
+
+    def get_alias_edges(self, workers_pool):
+        '''
+        Returns the node to alias mappings.
         '''
         G = self.G
         p = self.p
         q = self.q
+        is_directed = self.is_directed
 
-        unnormalized_probs = []
-        for dst_nbr in sorted(G.neighbors(dst)):
-            if dst_nbr == src:
-                unnormalized_probs.append(G[dst][dst_nbr]['weight']/p)
-            elif G.has_edge(dst_nbr, src):
-                unnormalized_probs.append(G[dst][dst_nbr]['weight'])
-            else:
-                unnormalized_probs.append(G[dst][dst_nbr]['weight']/q)
-        norm_const = sum(unnormalized_probs)
-        normalized_probs =  [float(u_prob)/norm_const for u_prob in unnormalized_probs]
+        # find all the edges
+        edge_pairs = [(edge[0], edge[1]) for edge in G.edges()]
+        if not is_directed:
+            edge_pairs.extend([(edge[1], edge[0]) for edge in G.edges()])
 
-        return alias_setup(normalized_probs)
+        # get the alias edges in parallel and then build the mapping table
+        workers = workers_pool._processes
+        chunk = [(G, p, q, edge_pairs[x::workers]) for x in range(workers)]
+        chunk_alias = workers_pool.map(get_chunk_alias_edges, chunk)
+        return {e: a for c in chunk_alias for (e, a) in c}
 
-    def preprocess_transition_probs(self):
+
+    def preprocess_transition_probs(self, workers_pool):
         '''
         Preprocessing of transition probabilities for guiding the random walks.
         '''
-        G = self.G
-        is_directed = self.is_directed
-
-        alias_nodes = {}
-        for node in G.nodes():
-            unnormalized_probs = [G[node][nbr]['weight'] for nbr in sorted(G.neighbors(node))]
-            norm_const = sum(unnormalized_probs)
-            normalized_probs =  [float(u_prob)/norm_const for u_prob in unnormalized_probs]
-            alias_nodes[node] = alias_setup(normalized_probs)
-
-        alias_edges = {}
-        triads = {}
-
-        if is_directed:
-            for edge in G.edges():
-                alias_edges[edge] = self.get_alias_edge(edge[0], edge[1])
-        else:
-            for edge in G.edges():
-                alias_edges[edge] = self.get_alias_edge(edge[0], edge[1])
-                alias_edges[(edge[1], edge[0])] = self.get_alias_edge(edge[1], edge[0])
-
-        self.alias_nodes = alias_nodes
-        self.alias_edges = alias_edges
-
+        self.alias_nodes = self.get_alias_nodes(workers_pool)
+        self.alias_edges = self.get_alias_edges(workers_pool)
         return
 
-    def compute_structural_labels(self, d, include_center, num_processes, log_string_lengths):
+
+    def compute_structural_labels(self, d, include_center, log_string_lengths, workers_pool):
         '''
         Computes structural labels at distance d for every node, caching as necessary
         '''
-        G, t, m = preprocess_graph(self.G, d, include_center, num_processes, log_string_lengths)
+        G, t, m = preprocess_graph(self.G, d, include_center, log_string_lengths, workers_pool)
         return m
 
 
@@ -125,6 +115,55 @@ def walk_iteration(arg_tuple):
     random.shuffle(nodes)
     return [n2v_G.node2vec_walk(walk_length=walk_length, start_node=node)
             for node in nodes]
+
+
+def get_chunk_alias_nodes(data):
+    '''
+    Get alias setups in batched chunks.
+    '''
+    result = []
+    G, nodes = data
+    for node in nodes:
+        unnormalized_probs = [G[node][nbr]['weight'] for nbr in sorted(G.neighbors(node))]
+        norm_const = sum(unnormalized_probs)
+        normalized_probs =  [float(u_prob)/norm_const for u_prob in unnormalized_probs]
+        result.append((node, alias_setup(normalized_probs)))
+    return result
+
+
+def get_chunk_alias_edges(data):
+    '''
+    Get the alias edge setup lists for a given batch of edges.
+    '''
+    G, p, q, chunk = data
+    results = []
+    for (src, dst) in chunk:
+        unnormalized_probs = []
+        for dst_nbr in sorted(G.neighbors(dst)):
+            if dst_nbr == src:
+                unnormalized_probs.append(G[dst][dst_nbr]['weight']/p)
+            elif G.has_edge(dst_nbr, src):
+                unnormalized_probs.append(G[dst][dst_nbr]['weight'])
+            else:
+                unnormalized_probs.append(G[dst][dst_nbr]['weight']/q)
+
+        # normalize probabilities and set up the sampling alias tables
+        norm_const = sum(unnormalized_probs)
+        normalized_probs = [float(u_prob)/norm_const for u_prob in unnormalized_probs]
+        as_alias = alias_setup(normalized_probs)
+
+        edge = (src, dst)
+        results.append((edge, as_alias))
+    return results
+
+
+def normalize_probs(unnormalized_probs):
+    '''
+    Normalize the probabilities produced by the alias edge procedure.
+    '''
+    norm_const = sum(unnormalized_probs)
+    normalized_probs =  [float(u_prob)/norm_const for u_prob in unnormalized_probs]
+    return alias_setup(normalized_probs)
 
 
 def alias_setup(probs):
@@ -156,8 +195,8 @@ def alias_setup(probs):
             smaller.append(large)
         else:
             larger.append(large)
-
     return J, q
+
 
 def alias_draw(J, q):
     '''
@@ -170,3 +209,4 @@ def alias_draw(J, q):
         return kk
     else:
         return J[kk]
+
