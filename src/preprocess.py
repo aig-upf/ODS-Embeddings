@@ -9,7 +9,7 @@ def compute_node_degree_counts(G, n, d, include_center):
     deg = G_n.degree()
     cnt = Counter(d for x, d in deg if include_center or n != x)
     cds = sorted(cnt.most_common())
-    return cds
+    return (n, cds)
 
 
 def _batch_compute_node_degree_counts(tuples_batch):
@@ -22,7 +22,7 @@ def compute_degree_counts(G, d, include_center, workers_pool):
     chunks = [params[x::workers] for x in range(workers)]
     chunk_cds = workers_pool.map(_batch_compute_node_degree_counts, chunks)
     all_cds = reduce(lambda x, y: x + y, chunk_cds)
-    for n, c in zip(G, all_cds):
+    for n, c in all_cds:
         G.node[n]['cds'] = c
     return G
 
@@ -36,7 +36,7 @@ def compute_global_degree_set(G):
     return sorted(deg)
 
 
-def build_degree_table(D, CHARACTER_OFFSET=0xA000):
+def build_degree_table(D, CHARACTER_OFFSET=0x2460):
     table = {}
     for i, d in enumerate(D):
         table[d] = unichr(CHARACTER_OFFSET + i)

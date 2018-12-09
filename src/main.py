@@ -18,7 +18,7 @@ import numpy as np
 import networkx as nx
 from multiprocessing import Pool
 import node2vec
-from fastText.FastText import train_unsupervised
+from fastText.FastText import train_unsupervised, load_model
 
 
 def parse_args():
@@ -89,6 +89,9 @@ def parse_args():
 
     parser.add_argument('--nowalk', dest='nowalk', action='store_true',
                         help='Boolean specifying no need for walking. Default is walk.')
+
+    parser.add_argument('--evaluate', dest='evaluate', action='store_true',
+                        help='Boolean specifying if the results must be evaluated. Default is false.')
 
     parser.add_argument('--nostruct', dest='nostruct', action='store_true',
                         help='Boolean specifying no need for structural labelling. Default is structural distance computation.')
@@ -164,7 +167,7 @@ def main(args):
     if not args.nowalk:
         if args.p != 1 or args.q != 1:
             G.preprocess_transition_probs(pool)
-        print_verbose('-- Transition probabilities ready.')
+            print_verbose('-- Transition probabilities ready.')
         walks = G.simulate_walks(args.num_walks, args.walk_length, pool)
 
         # dump the walks
@@ -172,10 +175,9 @@ def main(args):
             for walk in walks:
                 f.write(u' '.join(m[n] for n in walk) + u'\n')
 
-    if args.iter <= 0:
-        print_verbose('The number of training epochs is set to {} -- terminating without training!'.format(args.iter))
-        sys.exit(0)
-    model = learn_embeddings(args)
+    # get a FastText model
+    if args.iter > 0:
+        model = learn_embeddings(args)
 
 
 if __name__ == "__main__":
