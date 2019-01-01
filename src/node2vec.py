@@ -1,7 +1,8 @@
+# -*- coding: utf-8 -*-
+import random
 import numpy as np
 import networkx as nx
-from preprocess import preprocess_graph
-import random
+from multiprocessing import Pool
 
 
 class Graph():
@@ -47,28 +48,32 @@ class Graph():
         return walk
 
 
-    def simulate_walks(self, num_walks, walk_length, workers_pool):
+    def simulate_walks(self, num_walks, walk_length, num_workers):
         '''
         Repeatedly simulate random walks from each node.
         '''
         iters = [(self, walk_length) for x in range(num_walks)]
+        workers_pool = Pool(processes=num_workers if num_workers > 1 else 1)
         iters_walks = workers_pool.map(walk_iteration, iters)
+        workers_pool.close()
         return reduce(lambda x, y: x + y, iters_walks)
 
 
-    def get_alias_nodes(self, workers_pool):
+    def get_alias_nodes(self, num_workers):
         '''
         Returns the node to alias mappings.
         '''
         G = self.G
-        workers = workers_pool._processes
         iters = [node for node in G.nodes()]
-        chunk = [(G, iters[x::workers]) for x in range(workers)]
+        chunk = [(G, iters[x::num_workers]) for x in range(num_workers)]
+
+        workers_pool = Pool(processes=num_workers if num_workers > 1 else 1)
         chunk_alias = workers_pool.map(get_chunk_alias_nodes, chunk)
+        workers_pool.close()
         return {n: a for c in chunk_alias for (n, a) in c}
 
 
-    def get_alias_edges(self, workers_pool):
+    def get_alias_edges(self, num_workers):
         '''
         Returns the node to alias mappings.
         '''
@@ -83,27 +88,21 @@ class Graph():
             edge_pairs.extend([(edge[1], edge[0]) for edge in G.edges()])
 
         # get the alias edges in parallel and then build the mapping table
-        workers = workers_pool._processes
-        chunk = [(G, p, q, edge_pairs[x::workers]) for x in range(workers)]
+        chunk = [(G, p, q, edge_pairs[x::num_workers]) 
+                 for x in range(num_workers)]
+        workers_pool = Pool(processes=num_workers if num_workers > 1 else 1)
         chunk_alias = workers_pool.map(get_chunk_alias_edges, chunk)
+        workers_pool.close()
         return {e: a for c in chunk_alias for (e, a) in c}
 
 
-    def preprocess_transition_probs(self, workers_pool):
+    def preprocess_transition_probs(self, num_workers):
         '''
         Preprocessing of transition probabilities for guiding the random walks.
         '''
-        self.alias_nodes = self.get_alias_nodes(workers_pool)
-        self.alias_edges = self.get_alias_edges(workers_pool)
+        self.alias_nodes = self.get_alias_nodes(num_workers)
+        self.alias_edges = self.get_alias_edges(num_workers)
         return
-
-
-    def compute_structural_labels(self, d, include_center, log_string_lengths, workers_pool):
-        '''
-        Computes structural labels at distance d for every node, caching as necessary
-        '''
-        G, t, m = preprocess_graph(self.G, d, include_center, log_string_lengths, workers_pool)
-        return m
 
 
 def walk_iteration(arg_tuple):

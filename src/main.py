@@ -1,185 +1,210 @@
+# -*- coding: utf-8 -*-
 '''
-Reference implementation of node2vec. 
+Reference implementation of YNSAN-E. 
 
-Author: Aditya Grover
+Author: Nur Álvarez González
 
-For more details, refer to the paper:
-node2vec: Scalable Feature Learning for Networks
-Aditya Grover and Jure Leskovec 
-Knowledge Discovery and Data Mining (KDD), 2016
+Based on the node2vec reference implementation
+by Aditya Grover:
+
+  https://github.com/aditya-grover/node2vec
 '''
 
 import io
 import os
 import sys
 import json
+import random
 import argparse
 import numpy as np
 import networkx as nx
-from multiprocessing import Pool
-import node2vec
 from fastText.FastText import train_unsupervised, load_model
 
+import node2vec
+from preprocess import preprocess_graph
 
-def parse_args():
-    '''
-    Parses the structural embeddings arguments.
-    '''
-    parser = argparse.ArgumentParser(description="Run structural graph embeddings.")
 
-    parser.add_argument('--input', nargs='?', default='graph/karate.edgelist',
-                        help='Input graph path')
+def parse_commands():
+    main_args = argparse.ArgumentParser()
+    main_args.add_argument('-v', '--verbose', help='Verbosity factor. 0 for silent, 1 for verbose.', type=int, default=1)
+    main_args.add_argument('-t', '--threads', help='Number of parallel workers. Default is 8.', type=int, default=8)
+    main_subs = main_args.add_subparsers(title='Subcommands', description='Available commands to execute the different YNSAN-E steps.', dest='task')
 
-    parser.add_argument('--delimiter', nargs='?', default=' ',
-                        help='Input graph delimiter')
+    graph_args = argparse.ArgumentParser(add_help=False)
+    graph_args.add_argument('-g', '--graph', help='Input graph to be encoded.', type=str, required=True)
+    graph_args.add_argument('-S', '--separator', help='Separator for the fields in the edgelist file.', type=str, default=' ')
+    graph_args.add_argument('-w', '--weighted', help='Flag to specify that the graph is weighted.', action='store_true')
+    graph_args.add_argument('-D', '--directed', help='Flag to specify that the graph is directed.', action='store_true')
 
-    parser.add_argument('--labelfile', nargs='?', default='labels/karate.json',
-                        help='Label file to save/read from.')
+    enc_args = main_subs.add_parser('encode', description='Structural label generation for graph nodes.', parents=[graph_args])
+    enc_args.add_argument('-c', '--center', help='Keep the degree of the ego network source in the ordered degree sequence.', action='store_true')
+    enc_args.add_argument('-d', '--distance', help='Distance of the per-node induced ego-networks.', type=int, default=2)
+    enc_args.add_argument('-f', '--function', help='Encoding function to use, from either "int" or "log".', default='log')
+    enc_args.add_argument('-o', '--output', help='Output file to store the structural mapping associated of every node, in JSON.', type=str, required=True)
 
-    parser.add_argument('--walkfile', nargs='?', default='walk/karate.walk',
-                        help='Random walk dump path')
+    walk_args = main_subs.add_parser('walk', description='Random walk generation from graphs.', parents=[graph_args])
+    walk_args.add_argument('-n', '--num-walks', help='Number of random walks to start from each node.', type=int, default=50)
+    walk_args.add_argument('-l', '--walk-length', help='Length of each random walk.', type=int, default=10)
+    walk_args.add_argument('-p', '--p', help='Return hyperparameter for node2vec. Default is 1.', type=int, default=1)
+    walk_args.add_argument('-q', '--q', help='Inout hyperparameter for node2vec. Default is 1.', type=int, default=1)
+    walk_args.add_argument('-m', '--mapping', help='Mapping file, aliasing every node to its corresponding structural label (or any other alias).', type=str, default='')
+    walk_args.add_argument('-o', '--output', help='Output file to store generated random walks.', type=str, required=True)
 
-    parser.add_argument('--output', nargs='?', default='emb/karate.emb',
-                        help='Embeddings path')
+    embed_args = main_subs.add_parser('embed', description='Network Embedding training from Random Walks.')
+    embed_args.add_argument('-c', '--context', help='Context size for optimization. Default is 3.', type=int, default=3)
+    embed_args.add_argument('-e', '--epochs', help='Number of epochs. If set to 0, no training is performed. Default is 100.', type=int, default=100)
+    embed_args.add_argument('-m', '--minn', help='Minimum ordered degree sequence ngram size. Default is 1.', type=int, default=1)
+    embed_args.add_argument('-M', '--maxn', help='Maximum ordered degree sequence ngram size. Default is 1.', type=int, default=2)
+    embed_args.add_argument('-d', '--dimensions', help='Dimensionality of the embedding vectors.', type=int, default=128)
+    embed_args.add_argument('-l', '--learning-rate', help='Learning rate.', type=float, default=0.005)
+    embed_args.add_argument('-w', '--walk', help='Input walk file to train the model on.', type=str, required=True)
+    embed_args.add_argument('-o', '--output', help='Output file for the trained embedding model.', type=str, required=True)
 
-    parser.add_argument('--dimensions', type=int, default=128,
-                        help='Number of dimensions. Default is 128.')
+    sample_args = main_subs.add_parser('sample', description='Graph edge sampling for link prediction.', parents=[graph_args])
+    sample_args.add_argument('-p', '--percentage', help='Percentage of the graph to sample.', type=float, default=0.8)
+    sample_args.add_argument('-s', '--seed', help='Seed used for sampling.', type=int, default=None)
+    sample_args.add_argument('-o', '--output', help='Output file to store generated graph sample.', type=str, required=True)
+    sample_args.add_argument('-c', '--complement', help='Complimentary output file to store the generated graph sample with the non-sampled edges, useful for link prediction.', type=str, default='')
 
-    parser.add_argument('--walk-length', type=int, default=80,
-                        help='Length of walk per source. Default is 80.')
+    args = main_args.parse_args()
+    return args
 
-    parser.add_argument('--num-walks', type=int, default=10,
-                        help='Number of walks per source. Default is 10.')
 
-    parser.add_argument('--window-size', type=int, default=3,
-                        help='Context size for optimization. Default is 3.')
-
-    parser.add_argument('--iter', default=10, type=int,
-                      help='Number of epochs. If set to 0, no training is performed.')
-
-    parser.add_argument('--workers', type=int, default=8,
-                        help='Number of parallel workers. Default is 8.')
-
-    parser.add_argument('--minn', type=int, default=1,
-                        help='Minimum ordered degree sequence ngram size. Default is 1.')
-
-    parser.add_argument('--maxn', type=int, default=2,
-                        help='Minimum ordered degree sequence ngram size. Default is 2.')
-
-    parser.add_argument('--structdist', type=int, default=1,
-                        help='Distance of the per-node ego networks. Default is 1.')
-
-    parser.add_argument('--p', type=float, default=1,
-                        help='Return hyperparameter. Default is 1.')
-
-    parser.add_argument('--q', type=float, default=1,
-                        help='Inout hyperparameter. Default is 1.')
-
-    parser.add_argument('--verbose', type=int, default=1,
-                        help='Verbosity level. 0 for silent.')
-
-    parser.add_argument('--weighted', dest='weighted', action='store_true',
-                        help='Boolean specifying (un)weighted. Default is unweighted.')
-
-    parser.add_argument('--center', dest='center', action='store_true',
-                        help='Boolean specifying if the degree of the ego network source is used. Default is false.')
-
-    parser.add_argument('--intlengths', dest='intlengths', action='store_true',
-                        help='Boolean specifying if the lengths of the degrees in the ordered degree sequences should be int instead of logarithm. Default is false.')
-
-    parser.add_argument('--nowalk', dest='nowalk', action='store_true',
-                        help='Boolean specifying no need for walking. Default is walk.')
-
-    parser.add_argument('--evaluate', dest='evaluate', action='store_true',
-                        help='Boolean specifying if the results must be evaluated. Default is false.')
-
-    parser.add_argument('--nostruct', dest='nostruct', action='store_true',
-                        help='Boolean specifying no need for structural labelling. Default is structural distance computation.')
-
-    parser.add_argument('--unweighted', dest='unweighted', action='store_false')
-    parser.set_defaults(weighted=False)
-
-    parser.add_argument('--directed', dest='directed', action='store_true',
-                        help='Graph is (un)directed. Default is undirected.')
-
-    parser.add_argument('--undirected', dest='undirected', action='store_false')
-    parser.set_defaults(directed=False)
-
-    return parser.parse_args()
-
-def read_graph():
+def read_graph(graph_path, separator, weighted, directed, verbose):
     '''
     Reads the input network in networkx.
     '''
-    if args.weighted:
-        G = nx.read_edgelist(args.input, delimiter=args.delimiter, nodetype=int, data=(('weight', float),), create_using=nx.DiGraph())
+    if weighted:
+        G = nx.read_edgelist(graph_path, delimiter=separator, nodetype=int, data=(('weight', float),), create_using=nx.DiGraph())
     else:
-        G = nx.read_edgelist(args.input, delimiter=args.delimiter, nodetype=int, create_using=nx.DiGraph())
+        G = nx.read_edgelist(graph_path, delimiter=separator, nodetype=int, create_using=nx.DiGraph())
         for edge in G.edges():
             G[edge[0]][edge[1]]['weight'] = 1
 
-    if not args.directed:
+    if not directed:
         G = G.to_undirected()
 
-    print('Total nodes: {}'.format(len(G)))
-    print('Total edges: {}'.format(len(G.edges())))
+    if verbose:
+        print('Total nodes: {}'.format(G.number_of_nodes()))
+        print('Total edges: {}'.format(G.number_of_edges()))
     return G
 
 
-def learn_embeddings(args):
-    '''
-    Learn embeddings by optimizing the Skipgram objective calling FastText.
-    '''
-    model = train_unsupervised(args.walkfile, dim=args.dimensions, ws=args.window_size, thread=args.workers, epoch=args.iter, minn=args.minn, maxn=args.maxn, minCount=0)
+def encode_command(G, args):    
+    if args.verbose:
+        print('Generating structural labels.')
+
+    mapping = preprocess_graph(G, 
+                               args.distance, 
+                               args.center, 
+                               args.function, 
+                               args.threads, 
+                               args.verbose)[-1]
+
+    with open(args.output, 'w') as f:
+        json.dump(mapping, f)
+
+    if args.verbose:
+        print('Saved structural labels in "{}".'.format(args.output))
+
+    sys.exit(0)
+
+
+def sample_command(G, args):    
+    if args.verbose:
+        print('Sampling edges to create subgraph.')
+
+    edges = list(G.edges())
+    new_n = int(round(G.number_of_edges() * args.percentage))
+    
+    if args.seed is not None:
+        random.seed(args.seed)
+    random.shuffle(edges)
+
+    new_edges = edges[:new_n]
+    sub_G = G.edge_subgraph(new_edges)
+    nx.write_edgelist(sub_G, args.output, data=args.weighted)
+
+    if args.verbose:
+        print('Saved edge-sampled graph in "{}" with {} edges out of {}.'.format(args.output, new_n, len(edges)))
+
+    if args.complement:
+        compl_n = G.number_of_edges() - new_n
+        compl_edges = edges[new_n:]
+        compl_G = G.edge_subgraph(compl_edges)
+        nx.write_edgelist(compl_G, args.complement, data=args.weighted)
+
+        if args.verbose:
+            print('Saved complement edge-sampled graph in "{}" with {} edges out of {}.'.format(args.complement, compl_n, len(edges)))
+
+    sys.exit(0)
+
+
+def walk_command(G, args):
+    G = node2vec.Graph(G, args.directed, args.p, args.q)
+    if args.p != 1 or args.q != 1:
+        if args.verbose:
+            print('Preprocessing transition probabilities.')
+        G.preprocess_transition_probs(args.threads)
+
+    if args.verbose:
+        print('Generating random walks.')
+    walks = G.simulate_walks(args.num_walks, args.walk_length, args.threads)
+
+    if args.mapping:
+        mapping = {int(k): v for (k, v) in json.load(open(args.mapping, 'r')).items()}
+    else:
+        mapping = {n: str(n) for n in G}
+
+    # dump the walks
+    with io.open(args.output, 'w', encoding='utf8') as f:
+        for walk in walks:
+            f.write(u' '.join(mapping[n] for n in walk) + u'\n')
+
+    if args.verbose:
+        print('Saved random walks in "{}".'.format(args.output))
+
+    sys.exit(0)
+
+
+def embed_command(args):    
+    if args.verbose:
+        print('Training model from the random walks in "{}".'.format(args.walk))
+
+    model = train_unsupervised(args.walk, 
+                               dim=args.dimensions, 
+                               ws=args.context, 
+                               thread=args.threads, 
+                               epoch=args.epochs, 
+                               minn=args.minn, 
+                               maxn=args.maxn, 
+                               lr=args.learning_rate, 
+                               verbose=args.verbose,
+                               minCount=0)
     model.save_model(args.output)
-    return model
+    
+    if args.verbose:
+        print('Saved FastText model in "{}".'.format(args.output))
+
+    sys.exit(0)
 
 
 def main(args):
-    '''
-    Pipeline for representational learning for all nodes in a graph.
-    '''
-    def print_verbose(s):
-        if args.verbose > 0:
-            print(s)
+    if args.task == 'embed':
+        embed_command(args)
 
-    nx_G = read_graph()
-    G = node2vec.Graph(nx_G, args.directed, args.p, args.q)
-    pool = Pool(processes=args.workers if args.workers > 1 else 1) 
-    print_verbose('-- Graph loaded.')
+    G = read_graph(args.graph, args.separator, args.weighted, args.directed, args.verbose)
+    if args.task == 'encode':
+        encode_command(G, args)
 
-    # load structural labels if they exist
-    if args.labelfile and os.path.exists(args.labelfile):
-        m = json.load(open(args.labelfile, 'r'))
-        print_verbose('-- Labels loaded from disk.')
+    if args.task == 'sample':
+        sample_command(G, args)
 
-    # generate structural labels
-    if not args.nostruct:
-        m = G.compute_structural_labels(args.structdist, args.center, not args.intlengths, pool)
-        print_verbose('-- Labels generated from scratch.')
-
-        # dump file if necessary
-        if args.labelfile:
-            with open(args.labelfile, 'w') as f:
-                json.dump(m, f)
-
-    # generate random walk
-    if not args.nowalk:
-        if args.p != 1 or args.q != 1:
-            G.preprocess_transition_probs(pool)
-            print_verbose('-- Transition probabilities ready.')
-        walks = G.simulate_walks(args.num_walks, args.walk_length, pool)
-
-        # dump the walks
-        with io.open(args.walkfile, 'w', encoding='utf8') as f:
-            for walk in walks:
-                f.write(u' '.join(m[n] for n in walk) + u'\n')
-
-    # get a FastText model
-    if args.iter > 0:
-        model = learn_embeddings(args)
+    if args.task == 'walk':
+        walk_command(G, args)
 
 
 if __name__ == "__main__":
-    args = parse_args()
+    args = parse_commands()
     main(args)
+    
