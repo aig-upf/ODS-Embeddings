@@ -1,3 +1,4 @@
+set -x
 MAIN="python src/main.py"
 GRAPH="$1"
 LABELS="$2"
@@ -11,3 +12,4 @@ GLOBAL_ARGS="$8"
 $MAIN $GLOBAL_ARGS encode $ENCODE_ARGS 
 $MAIN $GLOBAL_ARGS walk $WALK_ARGS
 $MAIN $GLOBAL_ARGS embed $EMBED_ARGS
+set +x
