@@ -18,13 +18,10 @@ import random
 import argparse
 import numpy as np
 import networkx as nx
-<<<<<<< HEAD
 
-=======
-from fastText.FastText import train_unsupervised
->>>>>>> 35eb9b69f3e84993efe9fd4f304204fd90911490
 
 import node2vec
+from graph import read_graph, sample_edges, edge_complement
 from preprocess import preprocess_graph
 
 
@@ -66,6 +63,7 @@ def parse_commands():
     embed_args.add_argument('-o', '--output', help='Output file for the trained embedding model.', type=str, required=True)
 
     sample_args = main_subs.add_parser('sample', description='Graph edge sampling for link prediction.', parents=[graph_args])
+    sample_args.add_argument('-C', '--connected', help='Whether or not to ensure that the graph remains connected after removing an edge.', action='store_true')
     sample_args.add_argument('-p', '--percentage', help='Percentage of the graph to sample.', type=float, default=0.8)
     sample_args.add_argument('-s', '--seed', help='Seed used for sampling.', type=int, default=None)
     sample_args.add_argument('-o', '--output', help='Output file to store generated graph sample.', type=str, required=True)
@@ -73,26 +71,6 @@ def parse_commands():
 
     args = main_args.parse_args()
     return args
-
-
-def read_graph(graph_path, separator, weighted, directed, verbose):
-    '''
-    Reads the input network in networkx.
-    '''
-    if weighted:
-        G = nx.read_edgelist(graph_path, delimiter=separator, nodetype=int, data=(('weight', float),), create_using=nx.DiGraph())
-    else:
-        G = nx.read_edgelist(graph_path, delimiter=separator, nodetype=int, create_using=nx.DiGraph())
-        for edge in G.edges():
-            G[edge[0]][edge[1]]['weight'] = 1
-
-    if not directed:
-        G = G.to_undirected()
-
-    if verbose:
-        print('Total nodes: {}'.format(G.number_of_nodes()))
-        print('Total edges: {}'.format(G.number_of_edges()))
-    return G
 
 
 def encode_command(G, args):    
@@ -119,28 +97,24 @@ def sample_command(G, args):
     if args.verbose:
         print('Sampling edges to create subgraph.')
 
-    edges = list(G.edges())
-    new_n = int(round(G.number_of_edges() * args.percentage))
-    
-    if args.seed is not None:
-        random.seed(args.seed)
-    random.shuffle(edges)
-
-    new_edges = edges[:new_n]
-    sub_G = G.edge_subgraph(new_edges)
+    sub_G = sample_edges(G, args.percentage, args.connected, args.seed)
     nx.write_edgelist(sub_G, args.output, delimiter=args.separator, data=args.weighted)
 
     if args.verbose:
-        print('Saved edge-sampled graph in "{}" with {} edges out of {}.'.format(args.output, new_n, len(edges)))
+        sub_edges = sub_G.number_of_edges()
+        orig_edges = G.number_of_edges()
+        pct_edges = (100.0 * sub_edges) / orig_edges 
+        print('Saved edge-sampled graph in "{}" with {} edges out of {} ({:.2f}%%).'.format(args.output, sub_edges, orig_edges, pct_edges))
 
     if args.complement:
-        compl_n = G.number_of_edges() - new_n
-        compl_edges = edges[new_n:]
-        compl_G = G.edge_subgraph(compl_edges)
+        compl_G = edge_complement(G, sub_G)
         nx.write_edgelist(compl_G, args.complement, data=args.weighted)
 
         if args.verbose:
-            print('Saved complement edge-sampled graph in "{}" with {} edges out of {}.'.format(args.complement, compl_n, len(edges)))
+            compl_edges = compl_G.number_of_edges()
+            orig_edges = G.number_of_edges()
+            pct_edges = (100.0 * compl_edges) / orig_edges 
+            print('Saved complement edge-sampled graph in "{}" with {} edges out of {} ({:.2f}%%).'.format(args.complement, compl_edges, orig_edges, pct_edges))
 
     sys.exit(0)
 
