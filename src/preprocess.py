@@ -54,7 +54,7 @@ def string_length_log(c):
 
 
 def compute_string_labels(G, d, t, length_func):
-    if length_func == 'log':
+    if length_func == u'log':
         compress = string_length_log
     else:
         compress = lambda x: x

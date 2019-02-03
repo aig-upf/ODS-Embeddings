@@ -18,7 +18,11 @@ import random
 import argparse
 import numpy as np
 import networkx as nx
+<<<<<<< HEAD
 
+=======
+from fastText.FastText import train_unsupervised
+>>>>>>> 35eb9b69f3e84993efe9fd4f304204fd90911490
 
 import node2vec
 from preprocess import preprocess_graph
@@ -38,26 +42,26 @@ def parse_commands():
 
     enc_args = main_subs.add_parser('encode', description='Structural label generation for graph nodes.', parents=[graph_args])
     enc_args.add_argument('-c', '--center', help='Keep the degree of the ego network source in the ordered degree sequence.', action='store_true')
-    enc_args.add_argument('-d', '--distance', help='Distance of the per-node induced ego-networks.', type=int, default=2)
+    enc_args.add_argument('-d', '--distance', help='Distance of the per-node induced ego-networks.', type=int, default=1)
     enc_args.add_argument('-f', '--function', help='Encoding function to use, from either "int" or "log".', default='log')
-    enc_args.add_argument('-o', '--output', help='Output file to store the structural mapping associated of every node, in JSON.', type=str, required=True)
+    enc_args.add_argument('-o', '--output', help='Output file to store the structural mapping associated of every node, in JSON (node -> structural label).', type=str, required=True)
 
     walk_args = main_subs.add_parser('walk', description='Random walk generation from graphs.', parents=[graph_args])
-    walk_args.add_argument('-n', '--num-walks', help='Number of random walks to start from each node.', type=int, default=50)
-    walk_args.add_argument('-l', '--walk-length', help='Length of each random walk.', type=int, default=10)
+    walk_args.add_argument('-n', '--num-walks', help='Number of random walks to start from each node.', type=int, default=4)
+    walk_args.add_argument('-l', '--walk-length', help='Length of each random walk.', type=int, default=15)
     walk_args.add_argument('-p', '--p', help='Return hyperparameter for node2vec. Default is 1.', type=int, default=1)
     walk_args.add_argument('-q', '--q', help='Inout hyperparameter for node2vec. Default is 1.', type=int, default=1)
-    walk_args.add_argument('-m', '--mapping', help='Mapping file, aliasing every node to its corresponding structural label (or any other alias).', type=str, default='')
+    walk_args.add_argument('-m', '--mapping', help='Mapping file, aliasing every node to its corresponding structural label (or any other alias). Expects a JSON-encoded dictionary (node -> structural label).', type=str, default='')
     walk_args.add_argument('-o', '--output', help='Output file to store generated random walks.', type=str, required=True)
 
     embed_args = main_subs.add_parser('embed', description='Network Embedding training from Random Walks.')
     embed_args.add_argument('-a', '--algorithm', help='Embedding algorithm to use out of \{fasttext,word2vec\}. Default is "fasttext".', type=str, default='fasttext')
-    embed_args.add_argument('-c', '--context', help='Context size for optimization. Default is 3.', type=int, default=3)
-    embed_args.add_argument('-e', '--epochs', help='Number of epochs. If set to 0, no training is performed. Default is 100.', type=int, default=100)
+    embed_args.add_argument('-c', '--context', help='Context size for optimization. Default is 2.', type=int, default=2)
+    embed_args.add_argument('-e', '--epochs', help='Number of epochs. If set to 0, no training is performed. Default is 50.', type=int, default=50)
     embed_args.add_argument('-m', '--minn', help='Minimum ordered degree sequence ngram size. Default is 1.', type=int, default=1)
     embed_args.add_argument('-M', '--maxn', help='Maximum ordered degree sequence ngram size. Default is 1.', type=int, default=2)
-    embed_args.add_argument('-d', '--dimensions', help='Dimensionality of the embedding vectors.', type=int, default=128)
-    embed_args.add_argument('-l', '--learning-rate', help='Learning rate.', type=float, default=0.005)
+    embed_args.add_argument('-d', '--dimensions', help='Dimensionality of the embedding vectors.', type=int, default=64)
+    embed_args.add_argument('-l', '--learning-rate', help='Learning rate.', type=float, default=0.1)
     embed_args.add_argument('-w', '--walk', help='Input walk file to train the model on.', type=str, required=True)
     embed_args.add_argument('-o', '--output', help='Output file for the trained embedding model.', type=str, required=True)
 
@@ -124,7 +128,7 @@ def sample_command(G, args):
 
     new_edges = edges[:new_n]
     sub_G = G.edge_subgraph(new_edges)
-    nx.write_edgelist(sub_G, args.output, data=args.weighted)
+    nx.write_edgelist(sub_G, args.output, delimiter=args.separator, data=args.weighted)
 
     if args.verbose:
         print('Saved edge-sampled graph in "{}" with {} edges out of {}.'.format(args.output, new_n, len(edges)))
