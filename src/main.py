@@ -18,7 +18,7 @@ import random
 import argparse
 import numpy as np
 import networkx as nx
-from fastText.FastText import train_unsupervised, load_model
+
 
 import node2vec
 from preprocess import preprocess_graph
@@ -51,6 +51,7 @@ def parse_commands():
     walk_args.add_argument('-o', '--output', help='Output file to store generated random walks.', type=str, required=True)
 
     embed_args = main_subs.add_parser('embed', description='Network Embedding training from Random Walks.')
+    embed_args.add_argument('-a', '--algorithm', help='Embedding algorithm to use out of \{fasttext,word2vec\}. Default is "fasttext".', type=str, default='fasttext')
     embed_args.add_argument('-c', '--context', help='Context size for optimization. Default is 3.', type=int, default=3)
     embed_args.add_argument('-e', '--epochs', help='Number of epochs. If set to 0, no training is performed. Default is 100.', type=int, default=100)
     embed_args.add_argument('-m', '--minn', help='Minimum ordered degree sequence ngram size. Default is 1.', type=int, default=1)
@@ -171,20 +172,36 @@ def embed_command(args):
     if args.verbose:
         print('Training model from the random walks in "{}".'.format(args.walk))
 
-    model = train_unsupervised(args.walk, 
-                               dim=args.dimensions, 
-                               ws=args.context, 
-                               thread=args.threads, 
-                               epoch=args.epochs, 
-                               minn=args.minn, 
-                               maxn=args.maxn, 
-                               lr=args.learning_rate, 
-                               verbose=args.verbose,
-                               minCount=0)
-    model.save_model(args.output)
-    
+    if args.algorithm == 'fasttext':
+        from fastText.FastText import train_unsupervised, load_model
+        model = train_unsupervised(args.walk, 
+                                   dim=args.dimensions, 
+                                   ws=args.context, 
+                                   thread=args.threads, 
+                                   epoch=args.epochs, 
+                                   minn=args.minn, 
+                                   maxn=args.maxn, 
+                                   lr=args.learning_rate, 
+                                   verbose=args.verbose,
+                                   minCount=0)
+        model.save_model(args.output)
+    elif args.algorithm == 'word2vec':
+        from gensim.models.word2vec import Word2Vec, LineSentence
+        walks = LineSentence(io.open(args.walk, 'r', encoding='utf8'))
+        model = Word2Vec(walks, 
+                         size=args.dimensions, 
+                         window=args.context, 
+                         min_count=0, 
+                         sg=1, 
+                         workers=args.threads, 
+                         iter=args.epochs)
+        model.save_word2vec_format(args.output)
+    else:
+        print('Unknown embedding algorithm: "{}".'.format(args.algorithm)) 
+        sys.exit(1)
+
     if args.verbose:
-        print('Saved FastText model in "{}".'.format(args.output))
+        print('Saved {} embedding model in "{}".'.format(args.algorithm, args.output))
 
     sys.exit(0)
 
