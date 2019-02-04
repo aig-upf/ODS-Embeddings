@@ -1,5 +1,5 @@
-TARGET_DIR=.
-DOWNLOAD_CMD=./download.sh
+TARGET_DIR=${1:-.}
+DOWNLOAD_CMD=${2:-./download.sh}
 
 # comparison with node2vec -- link prediction only graphs
 $DOWNLOAD_CMD "https://snap.stanford.edu/data/facebook_combined.txt.gz" "gz" "$TARGET_DIR/Facebook.edgelist"
