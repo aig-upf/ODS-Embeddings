@@ -1,8 +1,27 @@
 import random
+import numpy as np
 from sklearn.metrics import fbeta_score
 from sklearn.linear_model import LogisticRegression
 
 from ml_utils import node_features
+
+
+def make_label_vectorizer(labels):
+    try:
+        targets = {i for v in labels.values() for i in v}
+    except TypeError:
+        targets = {v for v in labels.values()}
+    values = {v: i for i, v in enumerate(sorted(targets))}
+    total_classes = len(values)
+
+    if total_classes <= 2:
+        return lambda l: l
+
+    def vectorizer(l):
+        vector = np.zeros(total_classes)
+        vector[l] = 1.0
+        return vector
+    return vectorizer
 
 
 def train(G, 
@@ -19,9 +38,12 @@ def train(G,
     raw_nodes  = [to_mapping(v) for v in G.nodes()]
     raw_labels = [labels.get(v, None) for v in G.nodes()]
 
+    # prepare the label vectorizer and the loss function
+    vector_fn = make_label_vectorizer(labels)
+
     # get the raw data
-    instances  = [(m, l) for (m, l) in zip(raw_nodes, raw_labels) 
-                         if not remove_unlabeled or l is not None]
+    instances  = [(m, vector_fn(l)) for (m, l) in zip(raw_nodes, raw_labels) 
+                                    if not remove_unlabeled or l is not None]
     full_data  = [(node_features(n, model, feat_fn), l) for n, l in instances]
     random.shuffle(full_data)
 

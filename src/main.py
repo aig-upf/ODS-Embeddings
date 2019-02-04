@@ -18,9 +18,10 @@ import random
 import argparse
 import numpy as np
 import networkx as nx
-from fastText.FastText import train_unsupervised
+
 
 import node2vec
+from graph import read_graph, sample_edges, edge_complement
 from preprocess import preprocess_graph
 
 
@@ -51,6 +52,7 @@ def parse_commands():
     walk_args.add_argument('-o', '--output', help='Output file to store generated random walks.', type=str, required=True)
 
     embed_args = main_subs.add_parser('embed', description='Network Embedding training from Random Walks.')
+    embed_args.add_argument('-a', '--algorithm', help='Embedding algorithm to use out of \{fasttext,word2vec\}. Default is "fasttext".', type=str, default='fasttext')
     embed_args.add_argument('-c', '--context', help='Context size for optimization. Default is 2.', type=int, default=2)
     embed_args.add_argument('-e', '--epochs', help='Number of epochs. If set to 0, no training is performed. Default is 50.', type=int, default=50)
     embed_args.add_argument('-m', '--minn', help='Minimum ordered degree sequence ngram size. Default is 1.', type=int, default=1)
@@ -61,6 +63,7 @@ def parse_commands():
     embed_args.add_argument('-o', '--output', help='Output file for the trained embedding model.', type=str, required=True)
 
     sample_args = main_subs.add_parser('sample', description='Graph edge sampling for link prediction.', parents=[graph_args])
+    sample_args.add_argument('-C', '--connected', help='Whether or not to ensure that the graph remains connected after removing an edge.', action='store_true')
     sample_args.add_argument('-p', '--percentage', help='Percentage of the graph to sample.', type=float, default=0.8)
     sample_args.add_argument('-s', '--seed', help='Seed used for sampling.', type=int, default=None)
     sample_args.add_argument('-o', '--output', help='Output file to store generated graph sample.', type=str, required=True)
@@ -68,26 +71,6 @@ def parse_commands():
 
     args = main_args.parse_args()
     return args
-
-
-def read_graph(graph_path, separator, weighted, directed, verbose):
-    '''
-    Reads the input network in networkx.
-    '''
-    if weighted:
-        G = nx.read_edgelist(graph_path, delimiter=separator, nodetype=int, data=(('weight', float),), create_using=nx.DiGraph())
-    else:
-        G = nx.read_edgelist(graph_path, delimiter=separator, nodetype=int, create_using=nx.DiGraph())
-        for edge in G.edges():
-            G[edge[0]][edge[1]]['weight'] = 1
-
-    if not directed:
-        G = G.to_undirected()
-
-    if verbose:
-        print('Total nodes: {}'.format(G.number_of_nodes()))
-        print('Total edges: {}'.format(G.number_of_edges()))
-    return G
 
 
 def encode_command(G, args):    
@@ -114,28 +97,24 @@ def sample_command(G, args):
     if args.verbose:
         print('Sampling edges to create subgraph.')
 
-    edges = list(G.edges())
-    new_n = int(round(G.number_of_edges() * args.percentage))
-    
-    if args.seed is not None:
-        random.seed(args.seed)
-    random.shuffle(edges)
-
-    new_edges = edges[:new_n]
-    sub_G = G.edge_subgraph(new_edges)
+    sub_G = sample_edges(G, args.percentage, args.connected, args.seed)
     nx.write_edgelist(sub_G, args.output, delimiter=args.separator, data=args.weighted)
 
     if args.verbose:
-        print('Saved edge-sampled graph in "{}" with {} edges out of {}.'.format(args.output, new_n, len(edges)))
+        sub_edges = sub_G.number_of_edges()
+        orig_edges = G.number_of_edges()
+        pct_edges = (100.0 * sub_edges) / orig_edges 
+        print('Saved edge-sampled graph in "{}" with {} edges out of {} ({:.2f}%%).'.format(args.output, sub_edges, orig_edges, pct_edges))
 
     if args.complement:
-        compl_n = G.number_of_edges() - new_n
-        compl_edges = edges[new_n:]
-        compl_G = G.edge_subgraph(compl_edges)
+        compl_G = edge_complement(G, sub_G)
         nx.write_edgelist(compl_G, args.complement, data=args.weighted)
 
         if args.verbose:
-            print('Saved complement edge-sampled graph in "{}" with {} edges out of {}.'.format(args.complement, compl_n, len(edges)))
+            compl_edges = compl_G.number_of_edges()
+            orig_edges = G.number_of_edges()
+            pct_edges = (100.0 * compl_edges) / orig_edges 
+            print('Saved complement edge-sampled graph in "{}" with {} edges out of {} ({:.2f}%%).'.format(args.complement, compl_edges, orig_edges, pct_edges))
 
     sys.exit(0)
 
@@ -171,20 +150,36 @@ def embed_command(args):
     if args.verbose:
         print('Training model from the random walks in "{}".'.format(args.walk))
 
-    model = train_unsupervised(args.walk, 
-                               dim=args.dimensions, 
-                               ws=args.context, 
-                               thread=args.threads, 
-                               epoch=args.epochs, 
-                               minn=args.minn, 
-                               maxn=args.maxn, 
-                               lr=args.learning_rate, 
-                               verbose=args.verbose,
-                               minCount=0)
-    model.save_model(args.output)
-    
+    if args.algorithm == 'fasttext':
+        from fastText.FastText import train_unsupervised, load_model
+        model = train_unsupervised(args.walk, 
+                                   dim=args.dimensions, 
+                                   ws=args.context, 
+                                   thread=args.threads, 
+                                   epoch=args.epochs, 
+                                   minn=args.minn, 
+                                   maxn=args.maxn, 
+                                   lr=args.learning_rate, 
+                                   verbose=args.verbose,
+                                   minCount=0)
+        model.save_model(args.output)
+    elif args.algorithm == 'word2vec':
+        from gensim.models.word2vec import Word2Vec, LineSentence
+        walks = LineSentence(io.open(args.walk, 'r', encoding='utf8'))
+        model = Word2Vec(walks, 
+                         size=args.dimensions, 
+                         window=args.context, 
+                         min_count=0, 
+                         sg=1, 
+                         workers=args.threads, 
+                         iter=args.epochs)
+        model.save_word2vec_format(args.output)
+    else:
+        print('Unknown embedding algorithm: "{}".'.format(args.algorithm)) 
+        sys.exit(1)
+
     if args.verbose:
-        print('Saved FastText model in "{}".'.format(args.output))
+        print('Saved {} embedding model in "{}".'.format(args.algorithm, args.output))
 
     sys.exit(0)
 
