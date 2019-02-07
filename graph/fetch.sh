@@ -4,7 +4,6 @@ DOWNLOAD_CMD=${2:-./download.sh}
 # comparison with node2vec -- link prediction only graphs
 $DOWNLOAD_CMD "https://snap.stanford.edu/data/facebook_combined.txt.gz" "gz" "$TARGET_DIR/Facebook.edgelist"
 $DOWNLOAD_CMD "https://snap.stanford.edu/data/ca-AstroPh.txt.gz" "gz" "$TARGET_DIR/CA-AstroPh.edgelist"
-$DOWNLOAD_CMD "https://snap.stanford.edu/biodata/datasets/10008/files/PP-Decagon_ppi.csv.gz" "gz" "$TARGET_DIR/Human-PPI.edgelist"
 
 # comparison with node2vec -- community detection (classification)
 $DOWNLOAD_CMD "http://socialcomputing.asu.edu/uploads/1283153973/BlogCatalog-dataset.zip" \
@@ -14,8 +13,19 @@ $DOWNLOAD_CMD "http://socialcomputing.asu.edu/uploads/1283153973/BlogCatalog-dat
                cp BlogCatalog-dataset/data/groups.csv BlogCatalog.cmty && \
                rm -rf BlogCatalog-dataset"
 
+# comparison with GraphSAGE -- community and role detection
+$DOWNLOAD_CMD "http://snap.stanford.edu/graphsage/ppi.zip" \
+              "zip" \
+              "$TARGET_DIR/PPI" \
+              "mv ppi/* . && rmdir ppi"
+
+$DOWNLOAD_CMD "http://snap.stanford.edu/graphsage/reddit.zip" \
+              "zip" \
+              "$TARGET_DIR/Reddit" \
+              "mv reddit/* . && rmdir reddit"
+
 # additional community detection on a larger graph (classification)
-rm -rf Youtube && mkdir Youtube
+rm -rf "Youtube" && mkdir "Youtube"
 $DOWNLOAD_CMD "https://snap.stanford.edu/data/bigdata/communities/com-youtube.ungraph.txt.gz" "gz" "$TARGET_DIR/Youtube/Youtube.edgelist"
 $DOWNLOAD_CMD "https://snap.stanford.edu/data/bigdata/communities/com-youtube.top5000.cmty.txt.gz" "gz" "$TARGET_DIR/Youtube/Youtube.cmty"
 

@@ -3,4 +3,15 @@
 emb/*
 walk/*
 labels/*
+
+# large graphs are fetched, not kept on the repo
 graph/sampled/*
+graph/BlogCatalog/*
+graph/CA-AstroPh.edgelist
+graph/Facebook.edgelist
+graph/MovieLens/*
+graph/PPI/*
+graph/Youtube.cmty
+graph/Youtube.edgelist
+graph/Youtube/*
+graph/reddit/*

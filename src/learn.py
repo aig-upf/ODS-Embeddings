@@ -57,7 +57,7 @@ def load_embedder(model_path, model_type):
         from fastText.FastText import load_model
         model = load_model(model_path)    
         return lambda node: model.get_sentence_vector(node)
-    elif model_type = 'word2vec':
+    elif model_type == 'word2vec':
         from gensim.models import KeyedVectors
         model = KeyedVectors.load_word2vec_format(model_path)
         return lambda node: model[node]
