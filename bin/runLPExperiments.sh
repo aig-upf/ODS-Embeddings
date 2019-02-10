@@ -38,18 +38,18 @@ do
           OUTPUT_FILE="$OUTPUT_DIR/$GRAPH_NAME-K$K-D$D-E$E-C$C-M$M.log"
           CMD="rm -f $TARGET_EMB && \
                $TRAIN_COMMAND \
-              '$GRAPH_PATH$GRAPH_NAME$GRAPH_FORMAT' \
-              '$TARGET_DIR/labels/$TARGET_ENC' \
-              '$TARGET_DIR/walk/$TARGET_WALK' \
-              '$TARGET_DIR/emb/$TARGET_EMB' \
-              '-d $K' \
-              '' \
-              '-d $D -c $C -e $E -M $M' \
-              '-t $NUM_THREADS -v 2' && \
+              \"$GRAPH_PATH$GRAPH_NAME$GRAPH_FORMAT\" \
+              \"$TARGET_DIR/labels/$TARGET_ENC\" \
+              \"$TARGET_DIR/walk/$TARGET_WALK\" \
+              \"$TARGET_DIR/emb/$TARGET_EMB\" \
+              \"-d $K\" \
+              \"\" \
+              \"-d $D -c $C -e $E -M $M\" \
+              \"-t $NUM_THREADS -v 2\" && \
               $LINK_PREDICTION_COMMAND \
-              '$TARGET_EMB' \
-              '$GRAPH_PATH$GRAPH_NAME-C$GRAPH_FORMAT' \
-              '$TARGET_DIR/labels/$TARGET_ENC'";
+              \"$TARGET_EMB\" \
+              \"$GRAPH_PATH$GRAPH_NAME-C$GRAPH_FORMAT\" \
+              \"$TARGET_DIR/labels/$TARGET_ENC\"";
           COMMANDS_ARRAY+=("$CMD")
           OUTPUTS_ARRAY+=("$OUTPUT_FILE")
         done

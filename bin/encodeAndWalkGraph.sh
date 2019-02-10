@@ -27,14 +27,14 @@ do
   TARGET_WALK="$GRAPH_NAME-K$K.walk"
   OUTPUT_FILE="$OUTPUT_DIR/$GRAPH_NAME-K$K.enc-walk.log"
   CMD="$TRAIN_COMMAND \
-      '$GRAPH_PATH$GRAPH_NAME$GRAPH_FORMAT' \
-      '$TARGET_DIR/labels/$TARGET_ENC' \
-      '$TARGET_DIR/walk/$TARGET_WALK' \
-      '' \
-      '-d $K' \
-      '' \
-      '' \
-      '-t $NUM_THREADS -v 2'";
+      \"$GRAPH_PATH$GRAPH_NAME$GRAPH_FORMAT\" \
+      \"$TARGET_DIR/labels/$TARGET_ENC\" \
+      \"$TARGET_DIR/walk/$TARGET_WALK\" \
+      \"\" \
+      \"-d $K\" \
+      \"\" \
+      \"\" \
+      \"-t $NUM_THREADS -v 2\"";
   COMMANDS_ARRAY+=("$CMD")
   OUTPUTS_ARRAY+=("$OUTPUT_FILE")
 done
