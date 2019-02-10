@@ -13,7 +13,7 @@ pip install networkx --user
 TARGET_DIR=${1:-.}
 OUTPUT_DIR=${2:-.}
 TRAIN_COMMAND=${3:-bin/train.sh}
-GRAPH_PATH=${5:-graphs/}
+GRAPH_PATH=${5:-graph/}
 GRAPH_NAME=${6:-Facebook}
 GRAPH_FORMAT=${7:-.edgelist}
 NUM_THREADS=${8:-8}
