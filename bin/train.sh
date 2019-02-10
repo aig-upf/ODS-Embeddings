@@ -5,7 +5,7 @@ MAIN="python src/main.py"
 GRAPH="${1:-graph/Facebook.edgelist}"
 LABELS="${2:-labels/Facebook.json}"
 WALK="${3:-walk/Facebook.walk}"
-MODEL="${4:-walk/Facebook.emb}"
+MODEL="${4:-emb/Facebook.emb}"
 
 # Additional args
 ENCODE_ARGS="$5 -g $GRAPH -o $LABELS"

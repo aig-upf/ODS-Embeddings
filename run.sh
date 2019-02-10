@@ -1,25 +1,28 @@
 # Download all graphs
 ./graph/fetch.sh "graph/" "graph/download.sh" "python graph/preprocess_graphsage.py"
 
+# Prepare the packages and libraries
+./bin/preparePackages.sh
+
 # Prepare sampled directory
 if [[ ! -d "graph/sampled" ]]; then
-    mkdir graph/sampled
+  mkdir graph/sampled
+  ./graph/sample.sh
 fi
-./graph/sample.sh
 
 # Create experiments log directory
 if [[ ! -d "experiments" ]]; then
-    mkdir experiments
+  mkdir experiments
 fi
 
 # Create labels directory
 if [[ ! -d "labels" ]]; then
-    mkdir labels
+  mkdir labels
 fi
 
 # Create walks directory
-if [[ ! -d "walks" ]]; then
-    mkdir labels
+if [[ ! -d "walk" ]]; then
+  mkdir walk
 fi
 
 # Encode the graphs

@@ -5,9 +5,7 @@
 #SBATCH -c 8
 #SBATCH --array=1-3:1
 
-# Prepare the execution environment
 module load Python/2.7.12-foss-2017a
-pip install networkx --user
 
 # Load the desired variables
 TARGET_DIR=${1:-.}
@@ -26,15 +24,7 @@ do
   TARGET_ENC="$GRAPH_NAME-K$K.json"
   TARGET_WALK="$GRAPH_NAME-K$K.walk"
   OUTPUT_FILE="$OUTPUT_DIR/$GRAPH_NAME-K$K.enc-walk.log"
-  CMD="$TRAIN_COMMAND \
-      \"$GRAPH_PATH$GRAPH_NAME$GRAPH_FORMAT\" \
-      \"$TARGET_DIR/labels/$TARGET_ENC\" \
-      \"$TARGET_DIR/walk/$TARGET_WALK\" \
-      \"\" \
-      \"-d $K\" \
-      \"\" \
-      \"\" \
-      \"-t $NUM_THREADS -v 2\"";
+  CMD="$TRAIN_COMMAND '$GRAPH_PATH$GRAPH_NAME$GRAPH_FORMAT' '$TARGET_DIR/labels/$TARGET_ENC' '$TARGET_DIR/walk/$TARGET_WALK' '' '-d $K' '' '' '-t $NUM_THREADS -v 2'"
   COMMANDS_ARRAY+=("$CMD")
   OUTPUTS_ARRAY+=("$OUTPUT_FILE")
 done
@@ -44,7 +34,7 @@ done
 # - Otherwise, it will run all the tasks sequentially
 if [[ ! -z "$SLURM_ARRAY_TASK_ID" ]]; then
   INDEX=$((SLURM_ARRAY_TASK_ID-1))
-  ${COMMANDS_ARRAY[$INDEX]} > ${OUTPUTS_ARRAY[$INDEX]}
+  eval "${COMMANDS_ARRAY[$INDEX]} > ${OUTPUTS_ARRAY[$INDEX]}"
 else
   for i in seq ${#COMMANDS_ARRAY[@]}; do
     ${COMMANDS_ARRAY[$i]} > ${OUTPUTS_ARRAY[$i]}
