@@ -25,6 +25,11 @@ if [[ ! -d "walk" ]]; then
   mkdir walk
 fi
 
+# Create walks directory
+if [[ ! -d "emb" ]]; then
+  mkdir emb
+fi
+
 # Encode the graphs
 sbatch bin/encodeAndWalkGraph.sh '.' 'experiments' 'bin/train.sh' 'graph/sampled' 'Facebook-P50' '.edgelist' '8'
 sbatch bin/encodeAndWalkGraph.sh '.' 'experiments' 'bin/train.sh' 'graph/sampled' 'CA-AstroPh-P50' '.edgelist' '8'

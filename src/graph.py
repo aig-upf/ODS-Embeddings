@@ -58,6 +58,8 @@ def edge_complement(G, sub_G):
     return graph with all nodes NOT in the sub-graph.
     '''
     sub_edges = set([e for e in sub_G.edges()])
-    new_edges = [e for e in G.edges() if e not in sub_edges]
-    compl_G = G.edge_subgraph(new_edges)
+    compl_G = G.copy()
+    for e in G.edges():
+        if e in sub_edges:
+            compl_G.remove_edge(*e)
     return compl_G

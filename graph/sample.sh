@@ -4,10 +4,13 @@ GRAPH_FORMAT=${3:-.edgelist}
 
 for GRAPH in "Facebook" "CA-AstroPh";
 do
-  $SAMPLE_COMMAND \
-    -C \
-    -g "$GRAPH_PATH/$GRAPH$GRAPH_FORMAT" \
-    -p 0.5 \
-    -o "$GRAPH_PATH/sampled/$GRAPH-P50$GRAPH_FORMAT" \
-    -c "$GRAPH_PATH/sampled/$GRAPH-P50-C$GRAPH_FORMAT";
+  for PERCENTAGE in 5 6 7 8 9;
+  do
+    $SAMPLE_COMMAND \
+      -C \
+      -g "$GRAPH_PATH/$GRAPH$GRAPH_FORMAT" \
+      -p 0.$PERCENTAGE \
+      -o "$GRAPH_PATH/sampled/$GRAPH-P${PERCENTAGE}0$GRAPH_FORMAT" \
+      -c "$GRAPH_PATH/sampled/$GRAPH-P${PERCENTAGE}0-C$GRAPH_FORMAT";
+  done
 done
