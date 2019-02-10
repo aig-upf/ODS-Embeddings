@@ -44,7 +44,7 @@ def parse_commands():
     enc_args.add_argument('-o', '--output', help='Output file to store the structural mapping associated of every node, in JSON (node -> structural label).', type=str, required=True)
 
     walk_args = main_subs.add_parser('walk', description='Random walk generation from graphs.', parents=[graph_args])
-    walk_args.add_argument('-n', '--num-walks', help='Number of random walks to start from each node.', type=int, default=4)
+    walk_args.add_argument('-n', '--num-walks', help='Number of random walks to start from each node.', type=int, default=8)
     walk_args.add_argument('-l', '--walk-length', help='Length of each random walk.', type=int, default=15)
     walk_args.add_argument('-p', '--p', help='Return hyperparameter for node2vec. Default is 1.', type=int, default=1)
     walk_args.add_argument('-q', '--q', help='Inout hyperparameter for node2vec. Default is 1.', type=int, default=1)
@@ -64,7 +64,7 @@ def parse_commands():
 
     sample_args = main_subs.add_parser('sample', description='Graph edge sampling for link prediction.', parents=[graph_args])
     sample_args.add_argument('-C', '--connected', help='Whether or not to ensure that the graph remains connected after removing an edge.', action='store_true')
-    sample_args.add_argument('-p', '--percentage', help='Percentage of the graph to sample.', type=float, default=0.8)
+    sample_args.add_argument('-p', '--percentage', help='Percentage of the graph to sample.', type=float, default=0.5)
     sample_args.add_argument('-s', '--seed', help='Seed used for sampling.', type=int, default=None)
     sample_args.add_argument('-o', '--output', help='Output file to store generated graph sample.', type=str, required=True)
     sample_args.add_argument('-c', '--complement', help='Complimentary output file to store the generated graph sample with the non-sampled edges, useful for link prediction.', type=str, default='')

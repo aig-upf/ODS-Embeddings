@@ -38,7 +38,7 @@ def parse_commands():
     graph_args.add_argument('-D', '--directed', help='Flag to specify that the graph is directed.', action='store_true')
 
     link_args = main_subs.add_parser('link', description='Link prediction task.', parents=[graph_args])
-    link_args.add_argument('-f', '--merge_function', help='Merge function to use when represented the edge, given the features of both nodes.', type=str, default='concat')
+    link_args.add_argument('-f', '--merge_function', help='Merge function to use when represented the edge, given the features of both nodes.', type=str, default='product')
     link_args.add_argument('-m', '--mapping', help='Mapping file, aliasing every node to its corresponding structural label (or any other alias). Expects a JSON-encoded dictionary (node -> structural label).', type=str, default='')
     link_args.add_argument('-o', '--output', help='Output file for the trained link prediction model.', type=str, default='')
 

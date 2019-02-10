@@ -1,5 +1,7 @@
+#!/bin/bash
 TARGET_DIR=${1:-.}
 DOWNLOAD_CMD=${2:-./download.sh}
+GRAPHSAGE_PREPROCESSOR=${3:-python preprocess_graphsage.py}
 
 # comparison with node2vec -- link prediction only graphs
 $DOWNLOAD_CMD "https://snap.stanford.edu/data/facebook_combined.txt.gz" "gz" "$TARGET_DIR/Facebook.edgelist"
@@ -10,7 +12,7 @@ $DOWNLOAD_CMD "http://socialcomputing.asu.edu/uploads/1283153973/BlogCatalog-dat
               "zip" \
               "$TARGET_DIR/BlogCatalog" \
               "cp BlogCatalog-dataset/data/edges.csv BlogCatalog.edgelist && \
-               cp BlogCatalog-dataset/data/groups.csv BlogCatalog.cmty && \
+               cp BlogCatalog-dataset/data/group-edges.csv BlogCatalog.cmty && \
                rm -rf BlogCatalog-dataset"
 
 # comparison with GraphSAGE -- community and role detection
@@ -25,7 +27,7 @@ $DOWNLOAD_CMD "http://snap.stanford.edu/graphsage/reddit.zip" \
               "mv reddit/* . && rmdir reddit"
 
 # additional community detection on a larger graph (classification)
-rm -rf "Youtube" && mkdir "Youtube"
+rm -rf "$TARGET_DIR/Youtube" && mkdir "$TARGET_DIR/Youtube"
 $DOWNLOAD_CMD "https://snap.stanford.edu/data/bigdata/communities/com-youtube.ungraph.txt.gz" "gz" "$TARGET_DIR/Youtube/Youtube.edgelist"
 $DOWNLOAD_CMD "https://snap.stanford.edu/data/bigdata/communities/com-youtube.top5000.cmty.txt.gz" "gz" "$TARGET_DIR/Youtube/Youtube.cmty"
 
@@ -33,7 +35,28 @@ $DOWNLOAD_CMD "https://snap.stanford.edu/data/bigdata/communities/com-youtube.to
 $DOWNLOAD_CMD "http://files.grouplens.org/datasets/movielens/ml-20m.zip" \
               "zip" \
               "$TARGET_DIR/MovieLens" \
-              "cut -d',' -f1-3 ml-20m/ratings.csv | tail -n +2 > MovieLens.ratings.csv && \
-               cut -d',' -f1,3 ml-20m/movies.csv | tail -n +2 > MovieLens.genres.csv && \
+              "cut -d',' -f1-3 ml-20m/ratings.csv | tr ',' ' ' | tail -n +2 > MovieLens.ratings.csv && \
+               paste -d' ' <(cut -d',' -f1 ml-20m/movies.csv) <(rev ml-20m/movies.csv | cut -d',' -f1 | rev) | tail -n +2 > MovieLens.genres.csv && \
                rm -rf ml-20m"
 
+# Run postprocessing step
+echo "Running additional postprocessing step to simplify experiments..."
+
+# Youtube -- Tabs to spaces
+tr '	' ' ' < "$TARGET_DIR/Youtube/Youtube.edgelist" > "$TARGET_DIR/Youtube/Youtube.spaces.edgelist"
+mv "$TARGET_DIR/Youtube/Youtube.spaces.edgelist" "$TARGET_DIR/Youtube/Youtube.edgelist"
+echo "Youtube: change separator -- Tabs to spaces done!"
+
+# CA-AstroPH -- Tabs to spaces
+tr '	' ' ' < "$TARGET_DIR/CA-AstroPh.edgelist" > "$TARGET_DIR/CA-AstroPh.spaces.edgelist"
+mv "$TARGET_DIR/CA-AstroPh.spaces.edgelist" "$TARGET_DIR/CA-AstroPh.edgelist"
+echo "CA-AstroPH: change separator -- Tabs to spaces done!"
+
+# BlogCatalog -- Commas to spaces
+tr ',' ' ' < "$TARGET_DIR/BlogCatalog/BlogCatalog.edgelist" > "$TARGET_DIR/BlogCatalog/BlogCatalog.spaces.edgelist"
+mv "$TARGET_DIR/BlogCatalog/BlogCatalog.spaces.edgelist" "$TARGET_DIR/BlogCatalog/BlogCatalog.edgelist"
+echo "BlogCatalog: change separator -- Commas to spaces done!"
+
+# Prepare GraphSAGE edgelist graphs
+$GRAPHSAGE_PREPROCESSOR "$TARGET_DIR/"
+echo "GraphSAGE datasets: PPI & Reddit -- JSON to edgelists done!"
