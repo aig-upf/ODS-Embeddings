@@ -62,7 +62,8 @@ done
 # - If the Slurm environment variable is active, only one job will run
 # - Otherwise, it will run all the tasks sequentially
 if [[ ! -z "$SLURM_ARRAY_TASK_ID" ]]; then
-  ${COMMANDS_ARRAY[$SLURM_ARRAY_TASK_ID]} > ${OUTPUTS_ARRAY[$SLURM_ARRAY_TASK_ID]}
+  INDEX=$((SLURM_ARRAY_TASK_ID-1))
+  ${COMMANDS_ARRAY[$INDEX]} > ${OUTPUTS_ARRAY[$INDEX]}
 else
   for i in seq ${#COMMANDS_ARRAY[@]}; do
     ${COMMANDS_ARRAY[$i]} > ${OUTPUTS_ARRAY[$i]}
