@@ -13,10 +13,10 @@ pip install networkx --user
 TARGET_DIR=${1:-.}
 OUTPUT_DIR=${2:-.}
 TRAIN_COMMAND=${3:-bin/train.sh}
-GRAPH_PATH=${5:-graph/}
-GRAPH_NAME=${6:-Facebook}
-GRAPH_FORMAT=${7:-.edgelist}
-NUM_THREADS=${8:-8}
+GRAPH_PATH=${4:-graph/}
+GRAPH_NAME=${5:-Facebook}
+GRAPH_FORMAT=${6:-.edgelist}
+NUM_THREADS=${7:-8}
 
 # Prepare the encoding and walk array, so that we can easily distribute work
 OUTPUTS_ARRAY=()

@@ -1,3 +1,6 @@
+# Download all graphs
+./graph/fetch.sh "graph/" "graph/download.sh" "python graph/preprocess_graphsage.py"
+
 # Prepare sampled directory
 if [[ ! -d "graph/sampled" ]]; then
     mkdir graph/sampled
