@@ -20,34 +20,21 @@ NUM_THREADS=${8:-8}
 # Prepare the whole experiments array, so that we can easily distribute work
 OUTPUTS_ARRAY=()
 COMMANDS_ARRAY=()
-for D in 32 64; # 128;
+for D in 32 64 128;
 do
-  for E in 50; # 250 500;
+  for E in 50 250 500;
   do
-    for C in 2; # 3 4 5;
+    for C in 2 3 4 5;
     do
-      for M in 1; # 2 3;
+      for M in 1 2 3;
       do
-        for K in 1; # 2 3;
+        for K in 1 2 3;
         do
           TARGET_ENC="$GRAPH_NAME-K$K.json"
           TARGET_WALK="$GRAPH_NAME-K$K.walk"
           TARGET_EMB="$GRAPH_NAME-K$K-D$D-E$E-C$C-M$M.emb"
           OUTPUT_FILE="$OUTPUT_DIR/$GRAPH_NAME-K$K-D$D-E$E-C$C-M$M.log"
-          CMD="rm -f '$TARGET_EMB' && \
-               $TRAIN_COMMAND \
-              '$GRAPH_PATH$GRAPH_NAME$GRAPH_FORMAT' \
-              '$TARGET_DIR/labels/$TARGET_ENC' \
-              '$TARGET_DIR/walk/$TARGET_WALK' \
-              '$TARGET_DIR/emb/$TARGET_EMB' \
-              '-d $K' \
-              '' \
-              '-d $D -c $C -e $E -M $M' \
-              '-t $NUM_THREADS -v 2' && \
-              $LINK_PREDICTION_COMMAND \
-              '$TARGET_DIR/emb/$TARGET_EMB' \
-              '$GRAPH_PATH$GRAPH_NAME-C$GRAPH_FORMAT' \
-              '$TARGET_DIR/labels/$TARGET_ENC'";
+          CMD="rm -f '$TARGET_DIR/emb/$TARGET_EMB' && $TRAIN_COMMAND '$GRAPH_PATH/$GRAPH_NAME$GRAPH_FORMAT' '$TARGET_DIR/labels/$TARGET_ENC' '$TARGET_DIR/walk/$TARGET_WALK' '$TARGET_DIR/emb/$TARGET_EMB' '-d $K' '' '-d $D -c $C -e $E -M $M' '-t $NUM_THREADS -v 2' && $LINK_PREDICTION_COMMAND '$TARGET_DIR/emb/$TARGET_EMB' '$GRAPH_PATH$GRAPH_NAME-C$GRAPH_FORMAT' '$TARGET_DIR/labels/$TARGET_ENC'";
           COMMANDS_ARRAY+=("$CMD")
           OUTPUTS_ARRAY+=("$OUTPUT_FILE")
         done
@@ -61,7 +48,7 @@ done
 # - Otherwise, it will run all the tasks sequentially
 if [[ ! -z "$SLURM_ARRAY_TASK_ID" ]]; then
   INDEX=$((SLURM_ARRAY_TASK_ID-1))
-  "${${COMMANDS_ARRAY[$INDEX]} > ${OUTPUTS_ARRAY[$INDEX]}}"
+  eval "${COMMANDS_ARRAY[$INDEX]} > ${OUTPUTS_ARRAY[$INDEX]}"
 else
   for i in seq ${#COMMANDS_ARRAY[@]}; do
     ${COMMANDS_ARRAY[$i]} > ${OUTPUTS_ARRAY[$i]}
