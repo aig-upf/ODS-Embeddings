@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -J LinkPredictionExperiments
 #SBATCH -p high
-#SBATCH -n 324 #number of tasks
+#SBATCH -n 6 #number of tasks
 #SBATCH -c 8
 #SBATCH --array=1-324:1
 
