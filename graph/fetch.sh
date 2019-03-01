@@ -35,7 +35,7 @@ $DOWNLOAD_CMD "https://snap.stanford.edu/data/bigdata/communities/com-youtube.to
 $DOWNLOAD_CMD "http://files.grouplens.org/datasets/movielens/ml-20m.zip" \
               "zip" \
               "$TARGET_DIR/MovieLens" \
-              "cut -d',' -f1-3 ml-20m/ratings.csv | tr ',' ' ' | tail -n +2 > MovieLens.ratings.csv && \
+              "cut -d',' -f1-3 ml-20m/ratings.csv | tr ',' ' ' | grep -v '^\s*\#' | tail -n +2 > MovieLens.ratings.csv && \
                paste -d' ' <(cut -d',' -f1 ml-20m/movies.csv) <(rev ml-20m/movies.csv | cut -d',' -f1 | rev) | tail -n +2 > MovieLens.genres.csv && \
                rm -rf ml-20m"
 
@@ -43,17 +43,17 @@ $DOWNLOAD_CMD "http://files.grouplens.org/datasets/movielens/ml-20m.zip" \
 echo "Running additional postprocessing step to simplify experiments..."
 
 # Youtube -- Tabs to spaces
-tr '	' ' ' < "$TARGET_DIR/Youtube/Youtube.edgelist" > "$TARGET_DIR/Youtube/Youtube.spaces.edgelist"
+tr '	' ' ' < "$TARGET_DIR/Youtube/Youtube.edgelist" | grep -v '^\s*\#' > "$TARGET_DIR/Youtube/Youtube.spaces.edgelist"
 mv "$TARGET_DIR/Youtube/Youtube.spaces.edgelist" "$TARGET_DIR/Youtube/Youtube.edgelist"
 echo "Youtube: change separator -- Tabs to spaces done!"
 
 # CA-AstroPH -- Tabs to spaces
-tr '	' ' ' < "$TARGET_DIR/CA-AstroPh.edgelist" > "$TARGET_DIR/CA-AstroPh.spaces.edgelist"
+tr '	' ' ' < "$TARGET_DIR/CA-AstroPh.edgelist" | grep -v '^\s*\#' > "$TARGET_DIR/CA-AstroPh.spaces.edgelist"
 mv "$TARGET_DIR/CA-AstroPh.spaces.edgelist" "$TARGET_DIR/CA-AstroPh.edgelist"
 echo "CA-AstroPH: change separator -- Tabs to spaces done!"
 
 # BlogCatalog -- Commas to spaces
-tr ',' ' ' < "$TARGET_DIR/BlogCatalog/BlogCatalog.edgelist" > "$TARGET_DIR/BlogCatalog/BlogCatalog.spaces.edgelist"
+tr ',' ' ' < "$TARGET_DIR/BlogCatalog/BlogCatalog.edgelist" | grep -v '^\s*\#' > "$TARGET_DIR/BlogCatalog/BlogCatalog.spaces.edgelist"
 mv "$TARGET_DIR/BlogCatalog/BlogCatalog.spaces.edgelist" "$TARGET_DIR/BlogCatalog/BlogCatalog.edgelist"
 echo "BlogCatalog: change separator -- Commas to spaces done!"
 

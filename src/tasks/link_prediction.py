@@ -6,22 +6,22 @@ from ml_utils import edge_features
 
 
 def get_labelled_edges(G, mapping):
-    to_mapping = lambda v: mapping.get(v, None)
-    raw_nodes = [to_mapping(v) for v in G.nodes()]
-    val_nodes = {t for t in raw_nodes if t is not None}
-    nodes_as_list = list(val_nodes)
+    to_mapping = lambda v: mapping.get(G.vs[v]['name'], None)
 
     # get the edges that have mappings for both nodes
-    raw_edges = [tuple(map(to_mapping, t)) for t in G.edges()]
+    raw_edges = [tuple(map(to_mapping, t.tuple)) for t in G.es]
     pos_edges = {t for t in raw_edges if None not in t}
 
     # get the negative, randomly sampled edges
-    neg_edges = set()
+    neg_edges = []
     while len(neg_edges) < len(pos_edges):
-        u = random.choice(nodes_as_list)
-        v = random.choice(nodes_as_list)
-        if u != v and (u, v) not in pos_edges:
-            neg_edges.add((u, v))
+        v1 = random.choice(G.vs).index
+        v2 = random.choice(G.vs).index
+        if not G.are_connected(v1, v2):
+            r1 = to_mapping(v1)
+            r2 = to_mapping(v2)
+            if r1 is not None and r2 is not None:
+                neg_edges.append((r1, r2))
 
     # return positive and negative sets, labelled
     return [(e, 1) for e in pos_edges], [(e, 0) for e in neg_edges]

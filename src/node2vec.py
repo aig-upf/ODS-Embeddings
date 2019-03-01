@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 import random
 import numpy as np
-import networkx as nx
 from multiprocessing import Pool
 
 
 class Graph():
-    def __init__(self, nx_G, is_directed, p, q):
-        self.G = nx_G
+    def __init__(self, G, is_directed, p, q):
+        self.G = G
         self.is_directed = is_directed
         self.p = p
         self.q = q
@@ -64,7 +63,7 @@ class Graph():
         Returns the node to alias mappings.
         '''
         G = self.G
-        iters = [node for node in G.nodes()]
+        iters = [node.index for node in G.vs()]
         chunk = [(G, iters[x::num_workers]) for x in range(num_workers)]
 
         workers_pool = Pool(processes=num_workers if num_workers > 1 else 1)
@@ -83,9 +82,9 @@ class Graph():
         is_directed = self.is_directed
 
         # find all the edges
-        edge_pairs = [(edge[0], edge[1]) for edge in G.edges()]
+        edge_pairs = [edge.tuple for edge in G.es()]
         if not is_directed:
-            edge_pairs.extend([(edge[1], edge[0]) for edge in G.edges()])
+            edge_pairs.extend([(e_2, e_1) for e_1, e_2 in edge_pairs])
 
         # get the alias edges in parallel and then build the mapping table
         chunk = [(G, p, q, edge_pairs[x::num_workers]) 
@@ -110,7 +109,7 @@ def walk_iteration(arg_tuple):
     Simulate random walks from each node.
     '''
     n2v_G, walk_length = arg_tuple
-    nodes = list(n2v_G.G.nodes())
+    nodes =[n.index for n in n2v_G.G.vs]
     random.shuffle(nodes)
     return [n2v_G.node2vec_walk(walk_length=walk_length, start_node=node)
             for node in nodes]
@@ -123,7 +122,8 @@ def get_chunk_alias_nodes(data):
     result = []
     G, nodes = data
     for node in nodes:
-        unnormalized_probs = [G[node][nbr]['weight'] for nbr in sorted(G.neighbors(node))]
+        unnormalized_probs = [G.es.select(_source=node, _target=nbr)[0].attributes().get('weight', 1)
+                              for nbr in sorted(G.neighbors(node))]
         norm_const = sum(unnormalized_probs)
         normalized_probs =  [float(u_prob)/norm_const for u_prob in unnormalized_probs]
         result.append((node, alias_setup(normalized_probs)))
@@ -139,12 +139,13 @@ def get_chunk_alias_edges(data):
     for (src, dst) in chunk:
         unnormalized_probs = []
         for dst_nbr in sorted(G.neighbors(dst)):
+            weight = G.es.select(_source=dst, _target=dst_nbr)[0].attributes().get('weight', 1)
             if dst_nbr == src:
-                unnormalized_probs.append(G[dst][dst_nbr]['weight']/p)
+                unnormalized_probs.append(weight/p)
             elif G.has_edge(dst_nbr, src):
-                unnormalized_probs.append(G[dst][dst_nbr]['weight'])
+                unnormalized_probs.append(weight)
             else:
-                unnormalized_probs.append(G[dst][dst_nbr]['weight']/q)
+                unnormalized_probs.append(weight/q)
 
         # normalize probabilities and set up the sampling alias tables
         norm_const = sum(unnormalized_probs)
@@ -161,7 +162,7 @@ def normalize_probs(unnormalized_probs):
     Normalize the probabilities produced by the alias edge procedure.
     '''
     norm_const = sum(unnormalized_probs)
-    normalized_probs =  [float(u_prob)/norm_const for u_prob in unnormalized_probs]
+    normalized_probs = [float(u_prob)/norm_const for u_prob in unnormalized_probs]
     return alias_setup(normalized_probs)
 
 

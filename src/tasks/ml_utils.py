@@ -4,7 +4,7 @@ import numpy as np
 merge_functions = {
     'concat': lambda x, y: np.concatenate([x, y]),
     'product': lambda x, y: x * y,
-    'average': lambda x, b: 0.5 * (x + y),
+    'average': lambda x, y: 0.5 * (x + y),
     'l1': lambda x, y: np.abs(x - y),
     'l2': lambda x, y: np.abs(x - y) ** 2,
 }

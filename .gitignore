@@ -3,6 +3,7 @@
 emb/*
 walk/*
 labels/*
+/notebooks/.ipynb_checkpoints
 
 # large graphs are fetched, not kept on the repo
 graph/sampled/*

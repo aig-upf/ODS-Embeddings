@@ -35,8 +35,8 @@ def train(G,
     if seed is not None:
         random.seed(seed)
     to_mapping = lambda v: mapping.get(v, None)
-    raw_nodes  = [to_mapping(v) for v in G.nodes()]
-    raw_labels = [labels.get(v, None) for v in G.nodes()]
+    raw_nodes  = [to_mapping(v['name']) for v in G.vs]
+    raw_labels = [labels.get(v['name'], None) for v in G.vs]
 
     # prepare the label vectorizer and the loss function
     vector_fn = make_label_vectorizer(labels)

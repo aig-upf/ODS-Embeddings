@@ -17,7 +17,7 @@ import json
 import random
 import argparse
 import numpy as np
-import networkx as nx
+import igraph as ig
 
 
 import node2vec
@@ -33,14 +33,16 @@ def parse_commands():
 
     graph_args = argparse.ArgumentParser(add_help=False)
     graph_args.add_argument('-g', '--graph', help='Input graph to be encoded.', type=str, required=True)
-    graph_args.add_argument('-S', '--separator', help='Separator for the fields in the edgelist file.', type=str, default=' ')
     graph_args.add_argument('-w', '--weighted', help='Flag to specify that the graph is weighted.', action='store_true')
     graph_args.add_argument('-D', '--directed', help='Flag to specify that the graph is directed.', action='store_true')
 
     enc_args = main_subs.add_parser('encode', description='Structural label generation for graph nodes.', parents=[graph_args])
     enc_args.add_argument('-c', '--center', help='Keep the degree of the ego network source in the ordered degree sequence.', action='store_true')
     enc_args.add_argument('-d', '--distance', help='Distance of the per-node induced ego-networks.', type=int, default=1)
-    enc_args.add_argument('-f', '--function', help='Encoding function to use, from either "int" or "log".', default='log')
+    enc_args.add_argument('-b', '--bucket_function', help='Bucketing function to apply to the degree frequences, between "id" or "log".', default='id')
+    enc_args.add_argument('-B', '--buckets', help='Number of buckets to use, or 0 to use all available values.', default=0)
+    enc_args.add_argument('-p', '--buckets_path', help='Path to store the bucketing array, if needed.', default='')
+    enc_args.add_argument('-f', '--comp_function', help='Encoding function to use, from either "int" or "log".', default='log')
     enc_args.add_argument('-o', '--output', help='Output file to store the structural mapping associated of every node, in JSON (node -> structural label).', type=str, required=True)
 
     walk_args = main_subs.add_parser('walk', description='Random walk generation from graphs.', parents=[graph_args])
@@ -54,10 +56,10 @@ def parse_commands():
     embed_args = main_subs.add_parser('embed', description='Network Embedding training from Random Walks.')
     embed_args.add_argument('-a', '--algorithm', help='Embedding algorithm to use out of \{fasttext,word2vec\}. Default is "fasttext".', type=str, default='fasttext')
     embed_args.add_argument('-c', '--context', help='Context size for optimization. Default is 2.', type=int, default=2)
-    embed_args.add_argument('-e', '--epochs', help='Number of epochs. If set to 0, no training is performed. Default is 50.', type=int, default=50)
+    embed_args.add_argument('-e', '--epochs', help='Number of epochs. If set to 0, no training is performed. Default is 25.', type=int, default=25)
     embed_args.add_argument('-m', '--minn', help='Minimum ordered degree sequence ngram size. Default is 1.', type=int, default=1)
     embed_args.add_argument('-M', '--maxn', help='Maximum ordered degree sequence ngram size. Default is 1.', type=int, default=2)
-    embed_args.add_argument('-d', '--dimensions', help='Dimensionality of the embedding vectors.', type=int, default=64)
+    embed_args.add_argument('-d', '--dimensions', help='Dimensionality of the embedding vectors.', type=int, default=32)
     embed_args.add_argument('-l', '--learning-rate', help='Learning rate.', type=float, default=0.1)
     embed_args.add_argument('-w', '--walk', help='Input walk file to train the model on.', type=str, required=True)
     embed_args.add_argument('-o', '--output', help='Output file for the trained embedding model.', type=str, required=True)
@@ -77,15 +79,21 @@ def encode_command(G, args):
     if args.verbose:
         print('Generating structural labels.')
 
-    mapping = preprocess_graph(G, 
+    G, B, t, m = preprocess_graph(G, 
                                args.distance, 
                                args.center, 
-                               args.function, 
+                               args.buckets,
+                               args.bucket_function,
+                               args.comp_function, 
                                args.threads, 
-                               args.verbose)[-1]
+                               args.verbose)
+
+    if args.buckets_path:
+        with open(args.buckets_path, 'w') as f:
+            json.dump([int(v) for v in B], f)
 
     with open(args.output, 'w') as f:
-        json.dump(mapping, f)
+        json.dump(m, f)
 
     if args.verbose:
         print('Saved structural labels in "{}".'.format(args.output))
@@ -98,21 +106,21 @@ def sample_command(G, args):
         print('Sampling edges to create subgraph.')
 
     sub_G = sample_edges(G, args.percentage, args.connected, args.seed)
-    nx.write_edgelist(sub_G, args.output, delimiter=args.separator, data=args.weighted)
+    sub_G.write_ncol(args.output, weights='weight' if args.weighted else None)
 
     if args.verbose:
-        sub_edges = sub_G.number_of_edges()
-        orig_edges = G.number_of_edges()
+        sub_edges = len(sub_G.es)
+        orig_edges = len(G.es)
         pct_edges = (100.0 * sub_edges) / orig_edges 
         print('Saved edge-sampled graph in "{}" with {} edges out of {} ({:.2f}%%).'.format(args.output, sub_edges, orig_edges, pct_edges))
 
     if args.complement:
         compl_G = edge_complement(G, sub_G)
-        nx.write_edgelist(compl_G, args.complement, data=args.weighted)
+        compl_G.write_ncol(args.complement, weights='weight' if args.weighted else None)
 
         if args.verbose:
-            compl_edges = compl_G.number_of_edges()
-            orig_edges = G.number_of_edges()
+            compl_edges = len(compl_G.es)
+            orig_edges = len(G.es)
             pct_edges = (100.0 * compl_edges) / orig_edges 
             print('Saved complement edge-sampled graph in "{}" with {} edges out of {} ({:.2f}%%).'.format(args.complement, compl_edges, orig_edges, pct_edges))
 
@@ -120,25 +128,26 @@ def sample_command(G, args):
 
 
 def walk_command(G, args):
-    G = node2vec.Graph(G, args.directed, args.p, args.q)
+    n2v_G = node2vec.Graph(G, args.directed, args.p, args.q)
     if args.p != 1 or args.q != 1:
         if args.verbose:
             print('Preprocessing transition probabilities.')
-        G.preprocess_transition_probs(args.threads)
+        n2v_G.preprocess_transition_probs(args.threads)
 
     if args.verbose:
         print('Generating random walks.')
-    walks = G.simulate_walks(args.num_walks, args.walk_length, args.threads)
+    walks = n2v_G.simulate_walks(args.num_walks, args.walk_length, args.threads)
 
     if args.mapping:
-        mapping = {int(k): v for (k, v) in json.load(open(args.mapping, 'r')).items()}
+        mapping = {k: v for (k, v) in json.load(open(args.mapping, 'r')).items()}
     else:
-        mapping = {n: str(n) for n in G}
+        mapping = {n['name']: n['name'] for n in G.vs}
 
     # dump the walks
+    names = G.vs['name']
     with io.open(args.output, 'w', encoding='utf8') as f:
         for walk in walks:
-            f.write(u' '.join(mapping[n] for n in walk) + u'\n')
+            f.write(u' '.join(mapping[names[n]] for n in walk) + u'\n')
 
     if args.verbose:
         print('Saved random walks in "{}".'.format(args.output))
@@ -188,7 +197,7 @@ def main(args):
     if args.task == 'embed':
         embed_command(args)
 
-    G = read_graph(args.graph, args.separator, args.weighted, args.directed, args.verbose)
+    G = read_graph(args.graph, args.weighted, args.directed, args.verbose)
     if args.task == 'encode':
         encode_command(G, args)
 

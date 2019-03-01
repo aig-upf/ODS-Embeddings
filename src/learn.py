@@ -33,7 +33,6 @@ def parse_commands():
 
     graph_args = argparse.ArgumentParser(add_help=False)
     graph_args.add_argument('-g', '--graph', help='Input graph to be encoded.', type=str, required=True)
-    graph_args.add_argument('-S', '--separator', help='Separator for the fields in the edgelist file.', type=str, default=' ')
     graph_args.add_argument('-w', '--weighted', help='Flag to specify that the graph is weighted.', action='store_true')
     graph_args.add_argument('-D', '--directed', help='Flag to specify that the graph is directed.', action='store_true')
 
@@ -70,9 +69,9 @@ def link_command(G, args):
         print('Preparing link prediction experiment.')
 
     if args.mapping:
-        mapping = {int(k): v for (k, v) in json.load(open(args.mapping, 'r')).items()}
+        mapping = {k: v for (k, v) in json.load(open(args.mapping, 'r')).items()}
     else:
-        mapping = {n: str(n) for n in G}
+        mapping = {n['name']: n['name'] for n in G.vs}
 
     model = load_embedder(args.model, args.algorithm)
     merge_fn = merge_functions[args.merge_function]
@@ -93,9 +92,9 @@ def classify_command(G, args):
 
     # structural labels
     if args.mapping:
-        mapping = {int(k): v for (k, v) in json.load(open(args.mapping, 'r')).items()}
+        mapping = {k: v for (k, v) in json.load(open(args.mapping, 'r')).items()}
     else:
-        mapping = {n: str(n) for n in G}
+        mapping = {n['name']: n['name'] for n in G.vs}
 
     # node-specific features, if any
     if args.features:
@@ -107,7 +106,7 @@ def classify_command(G, args):
 
     # model and labels
     model = load_embedder(args.model, args.algorithm)
-    labels = {int(n): l for (n, l) in json.load(open(args.labels, 'r')).items()}
+    labels = {n: l for (n, l) in json.load(open(args.labels, 'r')).items()}
     m, f1 = nc.train(G, mapping, model, labels, seed=args.seed, feat_fn=feat_fn, train_split=args.split_size)
 
     if args.verbose:
@@ -120,7 +119,7 @@ def classify_command(G, args):
 
 
 def main(args):
-    G = read_graph(args.graph, args.separator, args.weighted, args.directed, args.verbose)
+    G = read_graph(args.graph, args.weighted, args.directed, args.verbose)
     if args.task == 'link':
         link_command(G, args)
     if args.task == 'classify':
