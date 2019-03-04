@@ -170,6 +170,7 @@ def embed_command(args):
                                    maxn=args.maxn, 
                                    lr=args.learning_rate, 
                                    verbose=args.verbose,
+                                   bucket=200000, # lower memory using smaller bucket size
                                    minCount=0)
         model.save_model(args.output)
     elif args.algorithm == 'word2vec':

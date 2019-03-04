@@ -60,7 +60,7 @@ def build_degree_table(D, B, CHARACTER_OFFSET=0x2460):
 
 
 def string_length_log(c):
-    return int(round(math.log(c + 1)))
+    return int(round(math.log(c, 2) + 1))
 
 
 def compute_string_labels(G, d, t, length_fn):
