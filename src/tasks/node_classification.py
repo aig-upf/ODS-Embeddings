@@ -15,13 +15,13 @@ def make_label_vectorizer(labels):
     total_classes = len(values)
 
     if total_classes <= 2:
-        return lambda l: l
+        return lambda l: values[l], 1
 
     def vectorizer(l):
         vector = np.zeros(total_classes)
-        vector[l] = 1.0
+        vector[values[l]] = 1.0
         return vector
-    return vectorizer
+    return vectorizer, total_classes
 
 
 def train(G, 
@@ -31,7 +31,9 @@ def train(G,
           seed=None, 
           feat_fn=None,
           train_split=0.8,
-          remove_unlabeled=True):
+          remove_unlabeled=True, 
+          vectorize=True,
+          network_factory=None):
     if seed is not None:
         random.seed(seed)
     to_mapping = lambda v: mapping.get(v, None)
@@ -39,7 +41,10 @@ def train(G,
     raw_labels = [labels.get(v['name'], None) for v in G.vs]
 
     # prepare the label vectorizer and the loss function
-    vector_fn = make_label_vectorizer(labels)
+    if vectorize:
+        vector_fn, vector_size = make_label_vectorizer(labels)
+    else:
+        vector_fn, vector_size = lambda l: l, labels.values()[0].size
 
     # get the raw data
     instances  = [(m, vector_fn(l)) for (m, l) in zip(raw_nodes, raw_labels) 
@@ -54,13 +59,14 @@ def train(G,
 
     # train a logistic regression
     Xt_t, yt_t = zip(*train_split)
-    lr = LogisticRegression().fit(Xt_t, yt_t)
+    input_size, output_size = Xt_t.size[-1], yt_t.size[-1]
+    m = network_factory.make_network(input_size, output_size).fit(Xt_t, yt_t)
 
     # evaluate the logistic regression
     Xv_t, yv_t = zip(*valid_split)
-    yv_p = lr.predict(Xv_t)
+    yv_p = m.predict(Xv_t)
     f1 = fbeta_score(yv_t, yv_p, 1, average='macro')
 
     # return the classifier and the area under the curve
-    return lr, f1
+    return m, f1
 

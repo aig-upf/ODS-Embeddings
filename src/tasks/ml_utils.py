@@ -10,6 +10,36 @@ merge_functions = {
 }
 
 
+class NetworkFactory():
+    def __init__(self, args):
+        self.hidden_size       = args.hidden_size
+        self.hidden_number     = args.hidden_number
+        self.hidden_activation = args.hidden_activation
+        self.output_activation = args.output_activation
+        self.loss              = args.loss
+        self.optimizer         = args.optimizer
+
+    def make_network(self, input_size, output_size):
+        from keras import Model
+        from keras.layers import Input, Dense
+
+        input_node = Input((input_size,), name='input_layer')
+        hidden_cur = input_node
+        for i in range(1, self.hidden_number + 1):
+            hidden_cur = Dense(self.hidden_size, 
+                               activation=self.hidden_activation, 
+                               name='hidden_layer_{}'.format(i))(hidden_cur)
+        output_node = Dense(output_size, 
+                            activation=self.output_activation, 
+                            name='output_layer')(hidden_cur)
+        model = Model(inputs=input_node, 
+                      outputs=output_node)
+        model.compile(optimizer=self.optimizer,
+                      loss=self.loss,
+                      metrics=['accuracy'])
+        return model
+
+
 def node_features(n, model_fn, feat_fn=None):
     '''
     Extract node features from the model and an arbitrary feature function.
