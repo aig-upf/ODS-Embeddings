@@ -71,6 +71,10 @@ def parse_commands():
     sample_args.add_argument('-o', '--output', help='Output file to store generated graph sample.', type=str, required=True)
     sample_args.add_argument('-c', '--complement', help='Complimentary output file to store the generated graph sample with the non-sampled edges, useful for link prediction.', type=str, default='')
 
+    compute_args = main_subs.add_parser('compute', description='Node properties computation, used to evaluate on downstream tasks e.g. PageRank approximation.', parents=[graph_args])
+    compute_args.add_argument('property', help='Property to be computed, associated to each of the nodes in the input graph. It should be chosen out of \{pagerank,betweenness\}. Default is "pagerank".', type=str, default='pagerank')
+    compute_args.add_argument('-o', '--output', help='Output file to store the node-based property dictionary, in JSON (node -> value).', type=str, required=True)
+
     args = main_args.parse_args()
     return args
 
@@ -97,6 +101,29 @@ def encode_command(G, args):
 
     if args.verbose:
         print('Saved structural labels in "{}".'.format(args.output))
+
+    sys.exit(0)
+
+
+def compute_command(G, args):
+    valid_properties = {'pagerank': lambda G: G.pagerank(directed=args.directed), 
+                        'betweenness': lambda G: G.betweenness(directed=args.directed)}
+
+    prop = args.property
+    if prop not in valid_properties:
+        print('Unknown embedding algorithm: "{}".'.format(prop)) 
+        sys.exit(1)
+
+    if args.verbose:
+        print('Computing {}.'.format(prop))
+
+    node_props = valid_properties[prop](G)
+    mapping = {n: v for n, v in zip(G.vs['name'], node_props)}
+    with open(args.output, 'w') as f:
+        json.dump(mapping, f)
+
+    if args.verbose:
+        print('Saved node {} values in "{}".'.format(prop, args.output))
 
     sys.exit(0)
 
@@ -170,7 +197,7 @@ def embed_command(args):
                                    maxn=args.maxn, 
                                    lr=args.learning_rate, 
                                    verbose=args.verbose,
-                                   bucket=200000, # lower memory using smaller bucket size
+                                   bucket=200000, # lower memory usage w/ smaller bucket size
                                    minCount=0)
         model.save_model(args.output)
     elif args.algorithm == 'word2vec':
@@ -204,6 +231,9 @@ def main(args):
 
     if args.task == 'sample':
         sample_command(G, args)
+
+    if args.task == 'compute':
+        compute_command(G, args)
 
     if args.task == 'walk':
         walk_command(G, args)

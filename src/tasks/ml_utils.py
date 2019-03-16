@@ -35,8 +35,8 @@ class NetworkFactory():
         model = Model(inputs=input_node, 
                       outputs=output_node)
         model.compile(optimizer=self.optimizer,
-                      loss=self.loss,
-                      metrics=['accuracy'])
+                      loss=self.loss, 
+                      metrics=['accuracy'] if 'entropy' in self.loss else []) 
         return model
 
 

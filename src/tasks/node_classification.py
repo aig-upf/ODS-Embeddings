@@ -65,15 +65,17 @@ def train(G,
     input_size = len(Xt_t[0])
     output_size = len(yt_t[0]) if hasattr(yt_t[0], '__len__') else 1
 
+    # validation data in the same format
+    Xv_t, yv_t = map(np.asarray, zip(*valid_split))
+    yv_t = yv_t.reshape(-1) if yv_t.shape[-1] == 1 else yv_t
+
     # train the model
     m = network_factory.make_network(input_size, output_size)
     if verbose:
         m.summary()
-    m.fit(Xt_t, yt_t, epochs=epochs)
+    m.fit(Xt_t, yt_t, validation_data=(Xv_t, yv_t), epochs=epochs)
 
-    # evaluate the model
-    Xv_t, yv_t = map(np.asarray, zip(*valid_split))
-    yv_t = yv_t.reshape(-1) if yv_t.shape[-1] == 1 else yv_t
+    # evaluate the model -- finally
     yv_p = m.predict(Xv_t)
 
     # try to compute metrics 'automagically'
