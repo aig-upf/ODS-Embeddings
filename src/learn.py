@@ -13,7 +13,6 @@ import json
 import random
 import argparse
 import numpy as np
-from joblib import dump
 
 
 from graph import read_graph
@@ -51,6 +50,7 @@ def parse_commands():
 
     predict_args = main_subs.add_parser('predict', description='Node prediction task.', parents=[graph_args, network_args])
     predict_args.add_argument('-V', '--vectorize', help='Whether or not to vectorize the values of the label so that it can be predicted in binary or categorical classification tasks.', action='store_true')
+    predict_args.add_argument('-E', '--epochs', help='Number of training epochs to use for training the model.', type=int, default=50)
     predict_args.add_argument('-m', '--mapping', help='Mapping file, aliasing every node to its corresponding structural label (or any other alias). Expects a JSON-encoded dictionary (node -> structural label).', type=str, default='')
     predict_args.add_argument('-f', '--features', help='Features file, matching every node to its specific features. Expects a JSON-encoded dictionary (node -> [features]).', type=str, default='')
     predict_args.add_argument('-l', '--labels', help='Labels file, matching every node with its corresponding label/target. Expects a JSON-encoded dictionary (node -> label).', type=str, required=True)
@@ -121,18 +121,20 @@ def prediction_command(G, args):
     labels = {n: l for (n, l) in json.load(open(args.labels, 'r')).items()}
 
     # define input and output sizes for the neural model
-    m, f1 = nc.train(G, mapping, model, labels, 
-                     seed=args.seed, 
-                     feat_fn=feat_fn, 
-                     train_split=args.split_size, 
-                     vectorize=args.vectorize,
-                     network_factory=net)
+    m, metric, metric_fn = nc.train(G, mapping, model, labels, 
+                                    seed=args.seed, 
+                                    feat_fn=feat_fn, 
+                                    train_split=args.split_size, 
+                                    vectorize=args.vectorize,
+                                    network_factory=nf,
+                                    epochs=args.epochs,
+                                    verbose=args.verbose)
 
     if args.verbose:
-        print('Trained prediction task with F1 score of "{}".'.format(f1))
+        print('Trained prediction task with {} score of "{}".'.format(metric_fn, metric))
 
     if args.output:
-        dump(m, args.output)
+        m.save(args.output)
 
     sys.exit(0)
 
@@ -142,7 +144,7 @@ def main(args):
     if args.task == 'link':
         link_command(G, args)
     if args.task == 'predict':
-        classify_command(G, args)
+        prediction_command(G, args)
 
 
 if __name__ == "__main__":

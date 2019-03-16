@@ -1,6 +1,6 @@
 import random
 import numpy as np
-from sklearn.metrics import fbeta_score
+from sklearn.metrics import fbeta_score, mean_squared_error
 from sklearn.linear_model import LogisticRegression
 
 from ml_utils import node_features
@@ -33,7 +33,9 @@ def train(G,
           train_split=0.8,
           remove_unlabeled=True, 
           vectorize=True,
-          network_factory=None):
+          network_factory=None,
+          epochs=50, 
+          verbose=0):
     if seed is not None:
         random.seed(seed)
     to_mapping = lambda v: mapping.get(v, None)
@@ -44,7 +46,7 @@ def train(G,
     if vectorize:
         vector_fn, vector_size = make_label_vectorizer(labels)
     else:
-        vector_fn, vector_size = lambda l: l, labels.values()[0].size
+        vector_fn, vector_size = lambda l: l, np.asarray(labels.values())[0].size
 
     # get the raw data
     instances  = [(m, vector_fn(l)) for (m, l) in zip(raw_nodes, raw_labels) 
@@ -57,16 +59,26 @@ def train(G,
     train_split = full_data[:train_samples]
     valid_split = full_data[train_samples:]
 
-    # train a logistic regression
-    Xt_t, yt_t = zip(*train_split)
-    input_size, output_size = Xt_t.size[-1], yt_t.size[-1]
-    m = network_factory.make_network(input_size, output_size).fit(Xt_t, yt_t)
+    # prepare the input in vector form
+    Xt_t, yt_t = map(np.asarray, zip(*train_split))
+    yt_t = yt_t.reshape(-1) if yt_t.shape[-1] == 1 else yt_t
+    input_size = len(Xt_t[0])
+    output_size = len(yt_t[0]) if hasattr(yt_t[0], '__len__') else 1
 
-    # evaluate the logistic regression
-    Xv_t, yv_t = zip(*valid_split)
+    # train the model
+    m = network_factory.make_network(input_size, output_size)
+    if verbose:
+        m.summary()
+    m.fit(Xt_t, yt_t, epochs=epochs)
+
+    # evaluate the model
+    Xv_t, yv_t = map(np.asarray, zip(*valid_split))
+    yv_t = yv_t.reshape(-1) if yv_t.shape[-1] == 1 else yv_t
     yv_p = m.predict(Xv_t)
-    f1 = fbeta_score(yv_t, yv_p, 1, average='macro')
 
-    # return the classifier and the area under the curve
-    return m, f1
+    # try to compute metrics 'automagically'
+    try:
+        return m, fbeta_score(yv_t, yv_p, 1, average='macro'), 'f1-score'
+    except ValueError:
+        return m, mean_squared_error(yv_t, yv_p), 'mse'
 
