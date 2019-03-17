@@ -35,7 +35,7 @@ $DOWNLOAD_CMD "https://snap.stanford.edu/data/bigdata/communities/com-youtube.to
 $DOWNLOAD_CMD "http://files.grouplens.org/datasets/movielens/ml-20m.zip" \
               "zip" \
               "$TARGET_DIR/MovieLens" \
-              "cut -d',' -f1-3 ml-20m/ratings.csv | tr ',' ' ' | grep -v '^\s*\#' | tail -n +2 > MovieLens.ratings.csv && \
+              "cut -d',' -f1-3 ml-20m/ratings.csv | tr ',' ' ' | grep -v '^\s*\#' | tail -n +2 | sed 's/^/u_/g' > MovieLens.ratings.csv && \
                paste -d' ' <(cut -d',' -f1 ml-20m/movies.csv) <(rev ml-20m/movies.csv | cut -d',' -f1 | rev) | tail -n +2 > MovieLens.genres.csv && \
                rm -rf ml-20m"
 
