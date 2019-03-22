@@ -80,7 +80,7 @@ def train(G,
 
     # try to compute metrics 'automagically'
     try:
-        return m, fbeta_score(yv_t, yv_p, 1, average='macro'), 'f1-score'
+        return m, fbeta_score(yv_t, yv_p.round(), 1, average='macro'), 'f1'
     except ValueError:
         return m, mean_squared_error(yv_t, yv_p), 'mse'
 
