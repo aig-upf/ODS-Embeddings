@@ -1,7 +1,7 @@
 import random
 import numpy as np
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import fbeta_score, mean_squared_error
+from sklearn.metrics import fbeta_score, mean_squared_error, mean_squared_log_error
 
 from ml_utils import prepare_data
 
@@ -63,5 +63,11 @@ def evaluate(G,
         return fbeta_score(y, y_p.round(), 1, average=average)
     elif 'categorical' in eval_func:
         return fbeta_score(y.argmax(axis=-1), y_p.argmax(axis=-1), 1, average=average)
+    elif 'kendalltau' in eval_func:
+        s = -1 if '-' in eval_func else 1
+        limit = int(eval_func.split('@')[-1])
+        return kendalltau((s * y).argsort()[:limit], (s * y_p).argsort()[:limit])[0]
     elif 'mse' in eval_func:
         return mean_squared_error(y, y_p)
+    elif 'msle' in eval_func:
+        return mean_squared_log_error(y, y_p)
