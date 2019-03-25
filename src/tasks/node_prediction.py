@@ -1,5 +1,6 @@
 import random
 import numpy as np
+from scipy.stats import kendalltau, spearmanr, rankdata
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import fbeta_score, mean_squared_error, mean_squared_log_error
 
@@ -64,9 +65,14 @@ def evaluate(G,
     elif 'categorical' in eval_func:
         return fbeta_score(y.argmax(axis=-1), y_p.argmax(axis=-1), 1, average=average)
     elif 'kendalltau' in eval_func:
-        s = -1 if '-' in eval_func else 1
-        limit = int(eval_func.split('@')[-1])
-        return kendalltau((s * y).argsort()[:limit], (s * y_p).argsort()[:limit])[0]
+        s = -1 if 'rev' in eval_func else 1
+        limit = int(eval_func.split('@')[-1]) if '@' in eval_func else y.size
+        y_rnk = rankdata(s * y, method='min')
+        y_p_rnk = rankdata(s * y_p, method='min')
+        print('\n'.join('{}\t{}\t{}\t{}'.format(*t) for t in zip(y, y_rnk, y_p, y_p_rnk)))
+        return kendalltau(y_rnk[:limit], y_p_rnk[:limit])[0]
+    elif 'spearmanr' in eval_func:
+        return spearmanr(y, y_p)[0]
     elif 'mse' in eval_func:
         return mean_squared_error(y, y_p)
     elif 'msle' in eval_func:
