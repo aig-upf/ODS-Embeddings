@@ -69,7 +69,6 @@ def evaluate(G,
         limit = int(eval_func.split('@')[-1]) if '@' in eval_func else y.size
         y_rnk = rankdata(s * y, method='min')
         y_p_rnk = rankdata(s * y_p, method='min')
-        print('\n'.join('{}\t{}\t{}\t{}'.format(*t) for t in zip(y, y_rnk, y_p, y_p_rnk)))
         return kendalltau(y_rnk[:limit], y_p_rnk[:limit])[0]
     elif 'spearmanr' in eval_func:
         return spearmanr(y, y_p)[0]
