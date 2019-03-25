@@ -3,6 +3,7 @@
 emb/*
 walk/*
 labels/*
+models/*
 /notebooks/.ipynb_checkpoints
 experiments/*.log
 

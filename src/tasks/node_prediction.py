@@ -1,0 +1,67 @@
+import random
+import numpy as np
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import fbeta_score, mean_squared_error
+
+from ml_utils import prepare_data
+
+SKLEARN_AVERAGES = ['binary', 'micro', 'macro', 'samples', 'weighted']
+
+
+def train(G, 
+          mapping, 
+          model, 
+          labels,
+          network_factory,
+          feat_fn=None,
+          remove_unlabeled=True, 
+          vectorize=True,
+          epochs=50, 
+          verbose=0,
+          use_scaler=True):
+    X, y = prepare_data(G, mapping, model, labels, feat_fn, remove_unlabeled, vectorize)
+    input_size = len(X[0])
+    output_size = len(y[0]) if hasattr(y[0], '__len__') else 1
+
+    # train the model
+    m = network_factory.make_network(input_size, output_size)
+    if verbose:
+        m.summary()
+
+    # use a scaler if specified
+    scaler = None
+    if use_scaler:
+        scaler = StandardScaler()
+        X = scaler.fit_transform(X)
+    m.fit(X, y, epochs=epochs, verbose=verbose)
+    return m, scaler
+
+
+def evaluate(G, 
+             mapping, 
+             model, 
+             labels,
+             network,
+             eval_func,
+             feat_fn=None,
+             remove_unlabeled=True,
+             vectorize=True,
+             scaler=None):
+    X, y = prepare_data(G, mapping, model, labels, feat_fn, remove_unlabeled, vectorize)
+
+    # use a scaler if specified
+    if scaler is not None:
+        X = scaler.transform(X)
+
+    # evaluate the model -- finally
+    y_p = network.predict(X)
+
+    # try to compute metrics 'automagically'
+    all_avgs = [a for a in SKLEARN_AVERAGES if a in eval_func]
+    average = all_avgs[0] if all_avgs else 'macro'
+    if 'label' in eval_func:
+        return fbeta_score(y, y_p.round(), 1, average=average)
+    elif 'categorical' in eval_func:
+        return fbeta_score(y.argmax(axis=-1), y_p.argmax(axis=-1), 1, average=average)
+    elif 'mse' in eval_func:
+        return mean_squared_error(y, y_p)

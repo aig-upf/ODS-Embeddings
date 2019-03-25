@@ -1,4 +1,5 @@
 import numpy as np
+from sklearn.preprocessing import StandardScaler
 
 
 merge_functions = {
@@ -40,11 +41,53 @@ class NetworkFactory():
         return model
 
 
-def node_features(n, model_fn, feat_fn=None):
+def make_label_vectorizer(labels, skip_none=True):
+    '''Vectorize labels to automagically manage classification tasks.'''
+    try:
+        targets = {i for v in labels.values() for i in v}
+    except TypeError:
+        targets = {v for v in labels.values()}
+    values = {v: i for i, v in enumerate(sorted(targets))}
+    total_classes = len(values)
+
+    if total_classes <= 2:
+        return lambda l: values[l], 1
+
+    def vectorizer(l):
+        if skip_none and l is None:
+            return None
+        vector = np.zeros(total_classes)
+        vector[values[l]] = 1.0
+        return vector
+    return vectorizer, total_classes
+
+
+def prepare_data(G, mapping, model, labels, feat_fn=None, remove_unlabeled=True, vectorize=True):
+    '''Prepare the full input features out of a given graph'''
+    to_mapping = lambda v: mapping.get(v, None)
+    raw_nodes  = [(v['name'], to_mapping(v['name'])) for v in G.vs]
+    raw_labels = [labels.get(v['name'], None) for v in G.vs]
+
+    # prepare the label vectorizer and the loss function
+    if vectorize:
+        vector_fn, vector_size = make_label_vectorizer(labels, skip_none=remove_unlabeled)
+    else:
+        vector_fn, vector_size = lambda l: l, np.asarray(labels.values())[0].size
+
+    # get the raw data
+    instances  = [(n, vector_fn(l)) for (n, l) in zip(raw_nodes, raw_labels) 
+                                    if not remove_unlabeled or l is not None]
+    full_data  = [(node_features(n, model, feat_fn), l) for n, l in instances]
+    X, y = map(np.asarray, zip(*full_data))
+    return X, y.reshape(-1) if y.shape[-1] == 1 else y
+
+
+def node_features(n_t, model_fn, feat_fn=None):
     '''
     Extract node features from the model and an arbitrary feature function.
     '''
-    w = model_fn(n)
+    n, l = n_t # a node is the node name/id (n) and its structural label (l)
+    w = model_fn(l)
     if feat_fn is not None:
         f = feat_fn(n)
         return np.concatenate([w, f])

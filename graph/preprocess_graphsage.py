@@ -28,6 +28,10 @@ with open(TARGET_PATH + 'PPI/ppi-G.json', 'r') as f:
 with open(TARGET_PATH + 'Reddit/reddit-G.json', 'r') as f:
     with open(TARGET_PATH + 'Reddit/reddit-id_map.json', 'r') as m:
         mapping = json.load(m)
+    with open(TARGET_PATH + 'Reddit/reddit-class_map.json', 'r') as c:
+        dest = open(TARGET_PATH + 'Reddit/reddit-id_class_map.json', 'w')
+        json.dump({mapping[k]: v for k, v in json.load(c).items()}, dest)
+        dest.close()
     G_json = json.load(f)
     G_json['nodes'] = [{'test': n['test'], 'id': mapping[n['id']], 'val': n['val']} for n in G_json['nodes']]
     G = json_graph.node_link_graph(G_json)

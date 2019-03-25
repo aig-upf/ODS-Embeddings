@@ -13,11 +13,12 @@ import json
 import random
 import argparse
 import numpy as np
+from sklearn.externals.joblib import dump, load
 
 
 from graph import read_graph
 import tasks.link_prediction as lp
-import tasks.node_classification as nc
+import tasks.node_prediction as nd
 from tasks.ml_utils import merge_functions, NetworkFactory
 
 
@@ -27,7 +28,7 @@ def parse_commands():
     main_args.add_argument('-s', '--seed', help='Seed used for the random number generator.', type=int, default=None)
     main_args.add_argument('-S', '--split_size', help='Percentage used for the training split. The remaining data will be used for validation.', type=float, default=0.8)
     main_args.add_argument('-M', '--model', help='Trained embedding model, used to obtain the vector-space representations of the graph nodes.', type=str, required=True)
-    main_args.add_argument('-a', '--algorithm', help='Algorithm used to train the model, chosen from \{fasttext,word2vec\}.', type=str, default='fasttext')
+    main_args.add_argument('-a', '--algorithm', help='Algorithm used to train the model, chosen from \{fasttext,word2vec,nil\}.', type=str, default='fasttext')
     main_subs = main_args.add_subparsers(title='Subcommands', description='Available commands to execute the different YNSAN-E experiments.', dest='task')
 
     graph_args = argparse.ArgumentParser(add_help=False)
@@ -54,7 +55,17 @@ def parse_commands():
     predict_args.add_argument('-m', '--mapping', help='Mapping file, aliasing every node to its corresponding structural label (or any other alias). Expects a JSON-encoded dictionary (node -> structural label).', type=str, default='')
     predict_args.add_argument('-f', '--features', help='Features file, matching every node to its specific features. Expects a JSON-encoded dictionary (node -> [features]).', type=str, default='')
     predict_args.add_argument('-l', '--labels', help='Labels file, matching every node with its corresponding label/target. Expects a JSON-encoded dictionary (node -> label).', type=str, required=True)
-    predict_args.add_argument('-o', '--output', help='Output file for the trained prediction model.', type=str, default='')
+    predict_args.add_argument('-o', '--output', help='Output file for the trained prediction model.', type=str, required=True)
+    predict_args.add_argument('-z', '--scaler', help='File for the feature scaler used when preprocessing the model.', type=str, default='')
+
+    evaluate_args = main_subs.add_parser('evaluate', description='Node evaluation task.', parents=[graph_args])
+    evaluate_args.add_argument('-V', '--vectorize', help='Whether or not to vectorize the values of the label so that it can be predicted in binary or categorical classification tasks.', action='store_true')
+    evaluate_args.add_argument('-m', '--mapping', help='Mapping file, aliasing every node to its corresponding structural label (or any other alias). Expects a JSON-encoded dictionary (node -> structural label).', type=str, default='')
+    evaluate_args.add_argument('-f', '--features', help='Features file, matching every node to its specific features. Expects a JSON-encoded dictionary (node -> [features]).', type=str, default='')
+    evaluate_args.add_argument('-l', '--labels', help='Labels file, matching every node with its corresponding label/target. Expects a JSON-encoded dictionary (node -> label).', type=str, required=True)
+    evaluate_args.add_argument('-F', '--function', help='Evaluation function, to chose between {label,categorical,mse}. Label and categorical evaluation calls F1, using any averaging mode available included in the string, or macro (e.g. "categorical_micro")', type=str, required=True)
+    evaluate_args.add_argument('-t', '--task-model', help='Model file, trained on the label/target task. Expects a path to a Keras trained model.', type=str, required=True)
+    evaluate_args.add_argument('-z', '--scaler', help='File for the feature scaler used when preprocessing the model.', type=str, default='')
 
     args = main_args.parse_args()
     return args
@@ -69,6 +80,8 @@ def load_embedder(model_path, model_type):
         from gensim.models import KeyedVectors
         model = KeyedVectors.load_word2vec_format(model_path)
         return lambda node: model[node], model.syn0.shape[-1]
+    elif model_type == 'nil':
+        return lambda node: np.zeros((0,)), 0
     else:
         raise RuntimeError('Invalid/unknown model algorithm: "{}"'.format(model_type))
 
@@ -107,9 +120,13 @@ def prediction_command(G, args):
 
     # node-specific features, if any
     if args.features:
-        feat_json = json.load(open(args.features, 'r'))
-        feat_dict = {n: np.asarray(f) for (n, f) in feat_json.items()}
-        feat_fn = lambda n: feat_dict[n]
+        if args.features.endswith('npy'):
+            feat_matrix = np.load(args.features)
+            feat_fn = lambda n: feat_matrix[int(n)]
+        else:
+            feat_json = json.load(open(args.features, 'r'))
+            feat_dict = {n: np.asarray(f) for (n, f) in feat_json.items()}
+            feat_fn = lambda n: feat_dict[n]
     else:
         feat_fn = None
 
@@ -121,21 +138,57 @@ def prediction_command(G, args):
     labels = {n: l for (n, l) in json.load(open(args.labels, 'r')).items()}
 
     # define input and output sizes for the neural model
-    m, metric, metric_fn = nc.train(G, mapping, model, labels, 
-                                    seed=args.seed, 
-                                    feat_fn=feat_fn, 
-                                    train_split=args.split_size, 
-                                    vectorize=args.vectorize,
-                                    network_factory=nf,
-                                    epochs=args.epochs,
-                                    verbose=args.verbose)
+    m, s = nd.train(G, mapping, model, labels, nf,
+                    feat_fn=feat_fn, 
+                    vectorize=args.vectorize,
+                    epochs=args.epochs,
+                    verbose=args.verbose,
+                    use_scaler=len(args.scaler) != 0)
 
+    m.save(args.output)
+    if s is not None:
+        dump(s, args.scaler, compress=True)
     if args.verbose:
-        print('Trained prediction task with {} score of "{}".'.format(metric_fn, metric))
+        print('Trained prediction task model to "{}".'.format(args.output))
 
-    if args.output:
-        m.save(args.output)
+    sys.exit(0)
 
+
+def evaluation_command(G, args):    
+    if args.verbose:
+        print('Preparing evaluation of a prediction model.')
+
+    # structural labels
+    if args.mapping:
+        mapping = {k: v for (k, v) in json.load(open(args.mapping, 'r')).items()}
+    else:
+        mapping = {n['name']: n['name'] for n in G.vs}
+
+    # node-specific features, if any
+    if args.features:
+        if args.features.endswith('npy'):
+            feat_matrix = np.load(args.features)
+            feat_fn = lambda n: feat_matrix[int(n)]
+        else:
+            feat_json = json.load(open(args.features, 'r'))
+            feat_dict = {n: np.asarray(f) for (n, f) in feat_json.items()}
+            feat_fn = lambda n: feat_dict[n]
+    else:
+        feat_fn = None
+
+    # model and labels
+    from keras.models import load_model
+    model, emb_size = load_embedder(args.model, args.algorithm)
+    labels = {n: l for (n, l) in json.load(open(args.labels, 'r')).items()}
+    m = load_model(args.task_model)
+    s = load(args.scaler) if args.scaler else None
+
+    # define input and output sizes for the neural model
+    metric = nd.evaluate(G, mapping, model, labels, m, args.function,
+                         feat_fn=feat_fn, 
+                         vectorize=args.vectorize,
+                         scaler=s)
+    print('Evaluated predictive model with {} score of "{}".'.format(args.function, metric))
     sys.exit(0)
 
 
@@ -145,6 +198,8 @@ def main(args):
         link_command(G, args)
     if args.task == 'predict':
         prediction_command(G, args)
+    if args.task == 'evaluate':
+        evaluation_command(G, args)
 
 
 if __name__ == "__main__":

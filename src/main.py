@@ -107,7 +107,8 @@ def encode_command(G, args):
 
 def compute_command(G, args):
     valid_properties = {'pagerank': lambda G: G.pagerank(directed=args.directed), 
-                        'betweenness': lambda G: G.betweenness(directed=args.directed)}
+                        'betweenness': lambda G: G.betweenness(directed=args.directed),
+                        'clust_coeff': lambda G: G.transitivity_local_undirected(mode='zero')}
 
     prop = args.property
     if prop not in valid_properties:
