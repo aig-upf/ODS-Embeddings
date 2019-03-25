@@ -1,5 +1,5 @@
 # 1. Train a model on the training split graphs
-./bin/train.sh graph/Reddit/reddit-train.edgelist labels/reddit.train.json walk/reddit.train.walk emb/reddit.train.emb '-d 2 -c' '' '' '-v 2' FORCE
+./bin/train.sh graph/Reddit/reddit-train.edgelist labels/reddit.train.json walk/reddit.train.walk emb/reddit.train.emb '-d 2 -c' '' '-e 1 -d 64 -c 5' '-v 2'
 
 # 2. Train predictive models with just features, features and graph, graph only
 #    Evaluate them on the training set to get baseline measurements
