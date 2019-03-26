@@ -2,7 +2,7 @@ import random
 import numpy as np
 from scipy.stats import kendalltau, spearmanr, rankdata
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import fbeta_score, mean_squared_error, mean_squared_log_error
+from sklearn.metrics import fbeta_score, mean_squared_error, median_absolute_error, mean_squared_log_error
 
 from ml_utils import prepare_data
 
@@ -74,5 +74,10 @@ def evaluate(G,
         return spearmanr(y, y_p)[0]
     elif 'mse' in eval_func:
         return mean_squared_error(y, y_p)
+    elif 'medianae' in eval_func:
+        return median_absolute_error(y, y_p)
     elif 'msle' in eval_func:
         return mean_squared_log_error(y, y_p)
+    elif 'rse' in eval_func: # relative squared error
+        return (np.abs(y - y_p) / y).mean()
+    return 'UNKNOWN: {}'.format(eval_func)

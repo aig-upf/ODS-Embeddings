@@ -106,9 +106,22 @@ def encode_command(G, args):
 
 
 def compute_command(G, args):
-    valid_properties = {'pagerank': lambda G: G.pagerank(directed=args.directed), 
-                        'betweenness': lambda G: G.betweenness(directed=args.directed),
-                        'clust_coeff': lambda G: G.transitivity_local_undirected(mode='zero')}
+    def pagerank(G):
+        return G.pagerank(directed=args.directed)
+    def pagerank_norm(G):
+        pg = np.asarray(pagerank(G))
+        return pg / pg.max()
+    def betweenness(G):
+        return G.betweenness(directed=args.directed)
+    def log_betweenness(G):
+        return np.log(G.betweenness(directed=args.directed))
+    def clust_coeff(G):
+        return G.transitivity_local_undirected(mode='zero')
+    valid_properties = {'pagerank': pagerank,
+                        'pagerank_norm': pagerank_norm, 
+                        'betweenness': betweenness,
+                        'log_betweenness': log_betweenness,
+                        'clust_coeff': clust_coeff}
 
     prop = args.property
     if prop not in valid_properties:
