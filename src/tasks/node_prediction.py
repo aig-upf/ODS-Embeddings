@@ -78,6 +78,6 @@ def evaluate(G,
         return median_absolute_error(y, y_p)
     elif 'msle' in eval_func:
         return mean_squared_log_error(y, y_p)
-    elif 'rse' in eval_func: # relative squared error
+    elif 'relerror' in eval_func:
         return (np.abs(y - y_p) / y).mean()
     return 'UNKNOWN: {}'.format(eval_func)
