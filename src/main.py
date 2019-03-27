@@ -115,12 +115,46 @@ def compute_command(G, args):
         return G.betweenness(directed=args.directed)
     def log_betweenness(G):
         return np.log(G.betweenness(directed=args.directed))
+    def degree(G):
+        return G.degree()
+    def log_degree(G):
+        return np.log(degree(G))
+    def global_overlap(G):
+        neighs = {i: set([x for x in n if i != x]) 
+                  for i, n in enumerate(G.neighborhood(order=1))}
+        def overlap(node):
+            nbr = neighs[i]
+            nbr_of_nbr = set()
+            for n in nbr:
+                if n != node:
+                    nbr_of_nbr |= neighs[n]
+            num = float(len(nbr & nbr_of_nbr))
+            den = float(len(nbr | nbr_of_nbr))
+            return num / den
+        return [overlap(i) for i in range(len(neighs))]
+    def individual_overlap(G):
+        neighs = {i: set([x for x in n if i != x]) 
+                  for i, n in enumerate(G.neighborhood(order=1))}
+        def overlap(node):
+            nbr = neighs[i]
+            total = 0.0
+            for n in nbr:
+                nbr_of_nbr = neighs[n]
+                num = float(len(nbr & nbr_of_nbr))
+                den = float(len(nbr | nbr_of_nbr))
+                total += num / den
+            return total / len(nbr)
+        return [overlap(i) for i in range(len(neighs))]
     def clust_coeff(G):
         return G.transitivity_local_undirected(mode='zero')
     valid_properties = {'pagerank': pagerank,
                         'pagerank_norm': pagerank_norm, 
                         'betweenness': betweenness,
                         'log_betweenness': log_betweenness,
+                        'degree': degree,
+                        'log_degree': log_degree,
+                        'global_overlap': global_overlap,
+                        'individual_overlap': individual_overlap,
                         'clust_coeff': clust_coeff}
 
     prop = args.property
