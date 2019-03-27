@@ -2,7 +2,7 @@ SAMPLE_COMMAND=${1:-python src/main.py sample}
 GRAPH_PATH=${2:-graph}
 GRAPH_FORMAT=${3:-.edgelist}
 PROBABILITY=${4:-0.5}
-TRIES=${5:-1}
+TRIES=${5:-3}
 
 for GRAPH in "Facebook" "BlogCatalog/BlogCatalog" "CA-AstroPh";
 do

@@ -37,7 +37,7 @@ def sample_edges(G, percentage, connected=False, seed=None):
         e = random.choice(sub_G.es)
         attributes = e.attributes()
         e_1, e_2 = e.tuple
-        if (e_1, e_2) in seen_edges:
+        if (e_1, e_2) in seen_edges or not sub_G.is_directed() and (e_2, e_1) in seen_edges:
             continue
 
         e.delete()
