@@ -19,7 +19,7 @@ NUM_THREADS=${7:-8}
 # Prepare the encoding and walk array, so that we can easily distribute work
 OUTPUTS_ARRAY=()
 COMMANDS_ARRAY=()
-for K in 1 2 3;
+for K in 1 2;
 do
   TARGET_ENC="$GRAPH_NAME-K$K.json"
   TARGET_WALK="$GRAPH_NAME-K$K.walk"

@@ -31,10 +31,14 @@ def sample_edges(G, percentage, connected=False, seed=None):
         return sub_G
 
     edges_count = 0
-    while edges_count < new_n:
+    seen_edges  = set()
+    total_edges = len(G.es)
+    while edges_count < new_n and len(seen_edges) < total_edges:
         e = random.choice(sub_G.es)
         attributes = e.attributes()
         e_1, e_2 = e.tuple
+        if (e_1, e_2) in seen_edges:
+            continue
 
         e.delete()
         reachable = False
@@ -43,7 +47,8 @@ def sample_edges(G, percentage, connected=False, seed=None):
                 reachable = True
                 break
 
-        if connected and not reachable:
+        seen_edges.add((e_1, e_2))
+        if connected and not reachable and not sub_G.are_connected(e_1, e_2):
             sub_G.add_edge(e_1, e_2, **attributes)
         else:
             edges_count += 1

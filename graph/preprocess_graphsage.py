@@ -24,7 +24,7 @@ with open(TARGET_PATH + 'PPI/ppi-G.json', 'r') as f:
     nx.write_edgelist(G.subgraph(N_test),  TARGET_PATH + 'PPI/ppi-test.edgelist',  delimiter=' ', data=False)
 
 
-# load the PPI graph and prepare the split subgraph
+# load the Reddit graph and prepare the split subgraph
 with open(TARGET_PATH + 'Reddit/reddit-G.json', 'r') as f:
     with open(TARGET_PATH + 'Reddit/reddit-id_map.json', 'r') as m:
         mapping = json.load(m)

@@ -2,6 +2,7 @@
 TARGET_DIR=${1:-.}
 DOWNLOAD_CMD=${2:-./download.sh}
 GRAPHSAGE_PREPROCESSOR=${3:-python preprocess_graphsage.py}
+COCIT_PREPROCESSOR=${4:-python preprocess_cocit.py}
 
 # comparison with node2vec -- link prediction only graphs
 $DOWNLOAD_CMD "https://snap.stanford.edu/data/facebook_combined.txt.gz" "gz" "$TARGET_DIR/Facebook.edgelist"
@@ -14,6 +15,9 @@ $DOWNLOAD_CMD "http://socialcomputing.asu.edu/uploads/1283153973/BlogCatalog-dat
               "cp BlogCatalog-dataset/data/edges.csv BlogCatalog.edgelist && \
                cp BlogCatalog-dataset/data/group-edges.csv BlogCatalog.cmty && \
                rm -rf BlogCatalog-dataset"
+
+# comparison with VERSE -- multiclass prediction
+$DOWNLOAD_CMD "http://tsitsul.in/pub/academic_confs.mat" "txt" "$TARGET_DIR/CoCit.mat"
 
 # comparison with GraphSAGE -- community and role detection
 $DOWNLOAD_CMD "http://snap.stanford.edu/graphsage/ppi.zip" \
@@ -61,3 +65,8 @@ echo "BlogCatalog: change separator -- Commas to spaces done!"
 # Prepare GraphSAGE edgelist graphs
 $GRAPHSAGE_PREPROCESSOR "$TARGET_DIR/"
 echo "GraphSAGE datasets: PPI & Reddit -- JSON to edgelists done!"
+
+# Prepare the Microsoft CoCitation dataset
+$COCIT_PREPROCESSOR "$TARGET_DIR/"
+echo "CoCit dataset: edgelist and labels done!"
+
