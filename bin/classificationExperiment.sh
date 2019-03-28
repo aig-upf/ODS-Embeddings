@@ -6,22 +6,20 @@ SPLIT="python src/split_labels.py"
 module load Python/2.7.12-foss-2017a
 
 # input/output files
-MODEL="${1:-emb/Facebook.emb}"
-GRAPH="${2:-graph/Facebook.edgelist}"
-LABELS="${3:-labels/Facebook.json}"
-DEST_PATH="${4:-models/Facebook.pagerank.h5py}"
-TASK="${5:-pagerank_norm}"
-METRIC="${6:-medianse}"
-NETWORK_PARAMS="${7:--H 16 -N 0 -a 'tanh' -A 'linear' -L 'mse' -P 'sgd' -E 1000}" 
-SPLIT_SIZE="${8:-0.5}"
-NUM_EXPERIMENTS="${9:-25}"
+MODEL="${1:-emb/BlogCatalog.emb}"
+GRAPH="${2:-graph/BlogCatalog/BlogCatalog.edgelist}"
+LABELS="${3:-labels/BlogCatalog.json}"
+DEST_PATH="${4:-models/BlogCatalog.h5py}"
+TASK_LABELS="${5:-graph/BlogCatalog/BlogCatalog.json}"
+METRIC="${6:-label.micro}"
+SPLIT_SIZE="${7:-0.5}"
+NETWORK_PARAMS="${8:--H 0 -N 0 -a 'tanh' -A 'sigmoid' -L 'binary_crossentropy' -P 'sgd' -E 100}"
+NUM_EXPERIMENTS="${9:-25}" 
 
 # execute necessary steps -- no target output means the step will be ignored
-TASK_PATH="$GRAPH.$TASK.json"
-TRAIN_PATH="$GRAPH.$TASK.train.json"
-VALID_PATH="$GRAPH.$TASK.valid.json"
-eval "$MAIN compute -g '$GRAPH' -o '$TASK_PATH' '$TASK'"
-eval "$SPLIT -i '$TASK_PATH' -o '$TRAIN_PATH' -O '$VALID_PATH' -s $SPLIT_SIZE"
+TRAIN_PATH="$TASK_LABELS.train"
+VALID_PATH="$TASK_LABELS.valid"
+eval "$SPLIT -i '$TASK_LABELS' -o '$TRAIN_PATH' -O '$VALID_PATH' -s $SPLIT_SIZE"
 RESULT="[REGRESS] $MODEL $GRAPH $LABELS $DEST_PATH $TASK $METRIC $SPLIT_SIZE $NUM_EXPERIMENTS"
 for N in `seq $NUM_EXPERIMENTS`; do
   TRAIN_OUT=$(eval "$LEARN -M '$MODEL' predict -g '$GRAPH' -m '$LABELS' -l '$TRAIN_PATH' $NETWORK_PARAMS -o '$DEST_PATH-$N' -z '$DEST_PATH-$N.scaler'")

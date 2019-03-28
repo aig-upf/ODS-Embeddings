@@ -57,7 +57,8 @@ def make_label_vectorizer(labels, skip_none=True):
         if skip_none and l is None:
             return None
         vector = np.zeros(total_classes)
-        vector[values[l]] = 1.0
+        indices = [values[i] for i in l] if isinstance(l, (list,)) else values[l]
+        vector[indices] = 1.0
         return vector
     return vectorizer, total_classes
 
