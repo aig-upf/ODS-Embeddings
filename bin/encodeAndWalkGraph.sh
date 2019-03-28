@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH -J EncodeAndWalkGraph
 #SBATCH -p high
-#SBATCH -n 3 #number of tasks
+#SBATCH -n 2 #number of tasks
 #SBATCH -c 8
-#SBATCH --array=1-3:1
+#SBATCH --array=1-2:1
 
 module load Python/2.7.12-foss-2017a
 
@@ -19,7 +19,7 @@ NUM_THREADS=${7:-8}
 # Prepare the encoding and walk array, so that we can easily distribute work
 OUTPUTS_ARRAY=()
 COMMANDS_ARRAY=()
-for K in 1 2;
+for K in 1 2; # 1 2 3;
 do
   TARGET_ENC="$GRAPH_NAME-K$K.json"
   TARGET_WALK="$GRAPH_NAME-K$K.walk"

@@ -1,13 +1,14 @@
 # Download all graphs
-./graph/fetch.sh "graph/" "graph/download.sh" "python graph/preprocess_graphsage.py"
+./graph/fetch.sh "graph/" "graph/download.sh" "python graph/preprocess_graphsage.py" "python graph/preprocess_cocit.py"
 
 # Prepare the packages and libraries
 ./bin/preparePackages.sh
 
 # Prepare sampled directory
+NUM_SAMPLES="3"
 if [[ ! -d "graph/sampled" ]]; then
   mkdir graph/sampled
-  ./graph/sample.sh
+  ./graph/sample.sh "python src/main.py sample" "graph" ".edgelist" "0.5" "$NUM_SAMPLES"
 fi
 
 # Create experiments log directory
@@ -30,8 +31,8 @@ if [[ ! -d "emb" ]]; then
   mkdir emb
 fi
 
-# Encode the graphs
-sbatch bin/encodeAndWalkGraph.sh '.' 'experiments' 'bin/train.sh' 'graph/sampled' 'Facebook-P50' '.edgelist' '8'
-sbatch bin/encodeAndWalkGraph.sh '.' 'experiments' 'bin/train.sh' 'graph/sampled' 'CA-AstroPh-P50' '.edgelist' '8'
+# Encode the graphs and produce their random walks
+./encodeGraphs.sh "$NUM_SAMPLES"
 
 # Run actual experiments 
+./runExperiments.sh

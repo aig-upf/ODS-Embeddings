@@ -1,5 +1,9 @@
 module load Python/2.7.12-foss-2017a
-pip install igraph --user
+
+# if igraph gives you trouble, install it from: 
+#    https://igraph.org/c/#downloads
+# and then try using pip
+pip install python-igraph --user 
 pip install sklearn --user
 
 # Install FastText

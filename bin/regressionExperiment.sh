@@ -13,8 +13,8 @@ DEST_PATH="${4:-models/Facebook.pagerank.h5py}"
 TASK="${5:-pagerank_norm}"
 METRIC="${6:-medianse}"
 SPLIT_SIZE="${7:-0.5}"
-NETWORK_PARAMS="${8:--H 16 -N 0 -a 'tanh' -A 'linear' -L 'mse' -P 'sgd' -E 1000}" 
-NUM_EXPERIMENTS="${9:-1}"
+NETWORK_PARAMS="${8:--H 16 -N 0 -a 'tanh' -A 'linear' -L 'mse' -P 'sgd' -E 1000}"
+NUM_EXPERIMENTS="${9:-25}"
 
 # execute necessary steps -- no target output means the step will be ignored
 TASK_PATH="$GRAPH.$TASK.json"

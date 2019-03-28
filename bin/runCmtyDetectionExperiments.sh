@@ -1,9 +1,9 @@
 #!/bin/bash
-#SBATCH -J ClassificationExperiments
+#SBATCH -J CmtyDetectionExperiments
 #SBATCH -p high
-#SBATCH -n 6 #number of tasks
+#SBATCH -n 4 #number of tasks
 #SBATCH -c 8
-#SBATCH --array=1-24:1
+#SBATCH --array=1-4:1
 
 module load Python/2.7.12-foss-2017a
 
@@ -22,13 +22,13 @@ OUTPUTS_ARRAY=()
 COMMANDS_ARRAY=()
 for D in 32 64;
 do
-  for E in 1 10 25;
+  for E in 500;
   do
-    for C in 4 6; # 2 3 4 5;
+    for C in 6 8; # 2 3 4 5;
     do
       for M in 2; # 1 2 3;
       do
-        for K in 1 2; # 1 2 3;
+        for K in 2; # 1 2 3;
         do
           TARGET_ENC="$GRAPH_NAME-K$K.json"
           TARGET_WALK="$GRAPH_NAME-K$K.walk"
