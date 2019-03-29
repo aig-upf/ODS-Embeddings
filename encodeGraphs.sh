@@ -8,7 +8,8 @@ sbatch bin/encodeAndWalkGraph.sh '.' 'experiments' 'bin/train.sh' 'graph/PPI' "p
 sbatch bin/encodeAndWalkGraph.sh '.' 'experiments' 'bin/train.sh' 'graph/Reddit' "reddit-train" '.edgelist' '8'
 
 # Sampled graphs for link prediction
-for N in `seq 3`;
+NUM_SAMPLES=${1:-3}
+for N in `seq $NUM_SAMPLES`;
 do
   sbatch bin/encodeAndWalkGraph.sh '.' 'experiments' 'bin/train.sh' 'graph/' "Facebook-$N" '.edgelist' '8'
   sbatch bin/encodeAndWalkGraph.sh '.' 'experiments' 'bin/train.sh' 'graph/' "BlogCatalog-$N" '.edgelist' '8'

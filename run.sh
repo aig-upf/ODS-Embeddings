@@ -14,6 +14,10 @@ fi
 # Create experiments log directory
 if [[ ! -d "experiments" ]]; then
   mkdir experiments
+  mkdir experiments/lp/
+  mkdir experiments/cmty/
+  mkdir experiments/reg/
+  mkdir experiments/cls/
 fi
 
 # Create labels directory

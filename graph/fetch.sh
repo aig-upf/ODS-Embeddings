@@ -3,6 +3,8 @@ TARGET_DIR=${1:-.}
 DOWNLOAD_CMD=${2:-./download.sh}
 GRAPHSAGE_PREPROCESSOR=${3:-python preprocess_graphsage.py}
 COCIT_PREPROCESSOR=${4:-python preprocess_cocit.py}
+BLOGCATALOG_PREPROCESSOR=${5:-python preprocess_blogcatalog.py}
+YOUTUBE_PREPROCESSOR=${6:-python preprocess_youtube.py}
 
 # comparison with node2vec -- link prediction only graphs
 $DOWNLOAD_CMD "https://snap.stanford.edu/data/facebook_combined.txt.gz" "gz" "$TARGET_DIR/Facebook.edgelist"
@@ -70,3 +72,7 @@ echo "GraphSAGE datasets: PPI & Reddit -- JSON to edgelists done!"
 $COCIT_PREPROCESSOR "$TARGET_DIR/"
 echo "CoCit dataset: edgelist and labels done!"
 
+# Prepare the community detection datasets
+$BLOGCATALOG_PREPROCESSOR "$TARGET_DIR/"
+$YOUTUBE_PREPROCESSOR "$TARGET_DIR/"
+echo "BlogCatalog & Youtube datasets: Community mappings done!"

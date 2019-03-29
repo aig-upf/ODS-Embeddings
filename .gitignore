@@ -7,6 +7,9 @@ models/*
 /notebooks/.ipynb_checkpoints
 experiments/*.log
 
+# if fasttext is built in the folder, also ignore it
+fastText
+
 # large graphs are fetched, not kept on the repo
 graph/sampled/*
 graph/BlogCatalog/*

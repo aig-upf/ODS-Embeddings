@@ -1,13 +1,5 @@
-# Prepare all the output directories
-mkdir experiments
-mkdir experiments/lp/
-mkdir experiments/cmty/
-mkdir experiments/reg/
-mkdir experiments/cls/
-
-# Run link prediction experiments
-NUM_SAMPLES=${1:-3}
-for N in `seq $NUM_SAMPLES`;
+# Run link prediction experiments -- the main experiments with just one graph
+for N in `seq 1`;
 do
   bin/runLPExperiments.sh '.' 'experiments/lp/' 'bin/train.sh' 'bin/linkPredictionExperiment.sh' 'graph/sampled/' "Facebook-$N" '.edgelist' '8'
   bin/runLPExperiments.sh '.' 'experiments/lp/' 'bin/train.sh' 'bin/linkPredictionExperiment.sh' 'graph/sampled/' "BlogCatalog-$N" '.edgelist' '8'

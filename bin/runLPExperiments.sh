@@ -1,11 +1,11 @@
 #!/bin/bash
 #SBATCH -J LinkPredictionExperiments
 #SBATCH -p high
-#SBATCH -n 6 #number of tasks
+#SBATCH -n 8 #number of tasks
 #SBATCH -c 8
 #SBATCH --array=1-324:1
 
-module load Python/2.7.12-foss-2017a
+module load python-igraph/0.7.1.post6-foss-2017a-Python-3.6.4
 
 # Load the desired variables
 TARGET_DIR=${1:-.}
