@@ -6,6 +6,8 @@ COCIT_PREPROCESSOR=${4:-python preprocess_cocit.py}
 BLOGCATALOG_PREPROCESSOR=${5:-python preprocess_blogcatalog.py}
 YOUTUBE_PREPROCESSOR=${6:-python preprocess_youtube.py}
 
+module load python-igraph/0.7.1.post6-foss-2017a-Python-3.6.4
+
 # comparison with node2vec -- link prediction only graphs
 $DOWNLOAD_CMD "https://snap.stanford.edu/data/facebook_combined.txt.gz" "gz" "$TARGET_DIR/Facebook.edgelist"
 $DOWNLOAD_CMD "https://snap.stanford.edu/data/ca-AstroPh.txt.gz" "gz" "$TARGET_DIR/CA-AstroPh.edgelist"
@@ -38,13 +40,13 @@ $DOWNLOAD_CMD "https://snap.stanford.edu/data/bigdata/communities/com-youtube.un
 $DOWNLOAD_CMD "https://snap.stanford.edu/data/bigdata/communities/com-youtube.top5000.cmty.txt.gz" "gz" "$TARGET_DIR/Youtube/Youtube.cmty"
 
 # large scale training on a bipartite network (classification)
-$DOWNLOAD_CMD "http://files.grouplens.org/datasets/movielens/ml-20m.zip" \
-              "zip" \
-              "$TARGET_DIR/MovieLens" \
-              "cut -d',' -f1-3 ml-20m/ratings.csv | tr ',' ' ' | grep -v '^\s*\#' | tail -n +2 | sed 's/^/u_/g' > MovieLens.ratings.csv && \
-               paste -d' ' <(cut -d',' -f1 ml-20m/movies.csv) <(rev ml-20m/movies.csv | cut -d',' -f1 | rev) | tail -n +2 > MovieLens.genres.csv && \
-               rm -rf ml-20m && \
-               python ../prepare_movielens.py"
+#$DOWNLOAD_CMD "http://files.grouplens.org/datasets/movielens/ml-20m.zip" \
+#              "zip" \
+#              "$TARGET_DIR/MovieLens" \
+#              "cut -d',' -f1-3 ml-20m/ratings.csv | tr ',' ' ' | grep -v '^\s*\#' | tail -n +2 | sed 's/^/u_/g' > MovieLens.ratings.csv && \
+#               paste -d' ' <(cut -d',' -f1 ml-20m/movies.csv) <(rev ml-20m/movies.csv | cut -d',' -f1 | rev) | tail -n +2 > MovieLens.genres.csv && \
+#               rm -rf ml-20m && \
+#               python ../prepare_movielens.py"
 
 # Run postprocessing step
 echo "Running additional postprocessing step to simplify experiments..."
