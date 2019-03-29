@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import math
 import numpy as np
+from functools import reduce
 from collections import Counter, defaultdict
 
 from multiprocessing import Pool

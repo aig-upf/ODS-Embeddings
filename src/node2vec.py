@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import random
 import numpy as np
+from functools import reduce
 from multiprocessing import Pool
 
 
