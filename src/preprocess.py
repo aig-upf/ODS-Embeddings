@@ -6,6 +6,10 @@ from collections import Counter, defaultdict
 
 from multiprocessing import Pool
 
+try:
+    to_unichr = unichr
+except NameError:
+    to_unichr = chr
 
 def compute_node_degree_counts(G, n, d, include_center):
     G_n = G.induced_subgraph(G.neighborhood(n, order=d))
@@ -55,7 +59,7 @@ def degree_bucketizer(D, num_buckets=50, bucket_fn='id'):
 
 
 def build_degree_table(D, B, CHARACTER_OFFSET=0x2460):
-    return {d: unichr(CHARACTER_OFFSET + B.searchsorted(d)) for d, f in D}
+    return {d: to_unichr(CHARACTER_OFFSET + B.searchsorted(d)) for d, f in D}
 
 
 def string_length_log(c):
