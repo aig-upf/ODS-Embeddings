@@ -11,7 +11,7 @@ sbatch bin/encodeAndWalkGraph.sh '.' 'experiments/enc' 'bin/train.sh' 'graph/Red
 NUM_SAMPLES=${1:-3}
 for N in `seq $NUM_SAMPLES`;
 do
-  sbatch bin/encodeAndWalkGraph.sh '.' 'experiments/enc' 'bin/train.sh' 'graph/' "Facebook-$N" '.edgelist' '8'
-  sbatch bin/encodeAndWalkGraph.sh '.' 'experiments/enc' 'bin/train.sh' 'graph/' "BlogCatalog-$N" '.edgelist' '8'
-  sbatch bin/encodeAndWalkGraph.sh '.' 'experiments/enc' 'bin/train.sh' 'graph/' "CA-AstroPh-$N" '.edgelist' '8'
+  sbatch bin/encodeAndWalkGraph.sh '.' 'experiments/enc' 'bin/train.sh' 'graph/sampled/' "Facebook-$N" '.edgelist' '8'
+  sbatch bin/encodeAndWalkGraph.sh '.' 'experiments/enc' 'bin/train.sh' 'graph/sampled/' "BlogCatalog-$N" '.edgelist' '8'
+  sbatch bin/encodeAndWalkGraph.sh '.' 'experiments/enc' 'bin/train.sh' 'graph/sampled/' "CA-AstroPh-$N" '.edgelist' '8'
 done
