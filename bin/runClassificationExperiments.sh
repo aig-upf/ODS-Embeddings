@@ -53,9 +53,9 @@ done
 # - Otherwise, it will run all the tasks sequentially
 if [[ ! -z "$SLURM_ARRAY_TASK_ID" ]]; then
   INDEX=$((SLURM_ARRAY_TASK_ID-1))
-  eval "{ ${COMMANDS_ARRAY[$INDEX]} } > ${OUTPUTS_ARRAY[$INDEX]}"
+  eval "${COMMANDS_ARRAY[$INDEX]}" > ${OUTPUTS_ARRAY[$INDEX]}
 else
   for i in `seq ${#COMMANDS_ARRAY[@]}`; do
-    { ${COMMANDS_ARRAY[$i]} } > ${OUTPUTS_ARRAY[$i]}
+    eval "${COMMANDS_ARRAY[$i]}" > ${OUTPUTS_ARRAY[$i]}
   done
 fi
