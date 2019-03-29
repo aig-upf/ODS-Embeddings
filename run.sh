@@ -15,9 +15,10 @@ fi
 if [[ ! -d "experiments" ]]; then
   mkdir experiments
   mkdir experiments/lp/
-  mkdir experiments/cmty/
-  mkdir experiments/reg/
   mkdir experiments/cls/
+  mkdir experiments/enc/
+  mkdir experiments/reg/
+  mkdir experiments/cmty/
 fi
 
 # Create labels directory
