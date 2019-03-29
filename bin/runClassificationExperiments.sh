@@ -20,6 +20,7 @@ LABEL_FORMAT=${9:-.json}
 EVALUATION_METRIC=${10:-label.micro}
 SPLIT_SIZE=${11:-0.5}
 NETWORK_FORMAT=${12:--H 0 -N 0 -a 'tanh' -A 'sigmoid' -L 'binary_crossentropy' -P 'sgd' -E 30}
+FORCE=${13:-}
 
 # Prepare the whole experiments array, so that we can easily distribute work
 OUTPUTS_ARRAY=()
@@ -39,7 +40,11 @@ do
           TARGET_EMB="$GRAPH_NAME-K$K-D$D-E$E-C$C-M$M.emb"
           OUTPUT_FILE="$OUTPUT_DIR/$GRAPH_NAME-K$K-D$D-E$E-C$C-M$M.log"
           TARGET_TASK='$GRAPH_NAME-K$K-D$D-E$E-C$C-M$M.h5py'
-          CMD="rm -f '$TARGET_DIR/emb/$TARGET_EMB'; $TRAIN_COMMAND '$GRAPH_PATH/$GRAPH_NAME$GRAPH_FORMAT' '$TARGET_DIR/labels/$TARGET_ENC' '$TARGET_DIR/walk/$TARGET_WALK' '$TARGET_DIR/emb/$TARGET_EMB' '-d $K' '' '-d $D -c $C -e $E -M $M' '-t $NUM_THREADS -v 2'; $CLASSIFICATION_COMMAND '$TARGET_DIR/emb/$TARGET_EMB' '$GRAPH_PATH/$GRAPH_NAME$GRAPH_FORMAT' '$TARGET_DIR/labels/$TARGET_ENC' '$TARGET_DIR/models/$TARGET_TASK' '$GRAPH_PATH/$GRAPH_NAME$LABEL_FORMAT' '$EVALUATION_METRIC' '$SPLIT_SIZE' '$NETWORK_PARAMS'";
+          DELETE_PATH="rm -f '$TARGET_DIR/emb/$TARGET_EMB'"
+          CMD="$TRAIN_COMMAND '$GRAPH_PATH/$GRAPH_NAME$GRAPH_FORMAT' '$TARGET_DIR/labels/$TARGET_ENC' '$TARGET_DIR/walk/$TARGET_WALK' '$TARGET_DIR/emb/$TARGET_EMB' '-d $K' '' '-d $D -c $C -e $E -M $M' '-t $NUM_THREADS -v 2'; $CLASSIFICATION_COMMAND '$TARGET_DIR/emb/$TARGET_EMB' '$GRAPH_PATH/$GRAPH_NAME$GRAPH_FORMAT' '$TARGET_DIR/labels/$TARGET_ENC' '$TARGET_DIR/models/$TARGET_TASK' '$GRAPH_PATH/$GRAPH_NAME$LABEL_FORMAT' '$EVALUATION_METRIC' '$SPLIT_SIZE' '$NETWORK_PARAMS'";
+          if [[ ! -z "$FORCE" ]]; then
+            CMD="$DELETE_PATH; $CMD"
+          fi
           COMMANDS_ARRAY+=("$CMD")
           OUTPUTS_ARRAY+=("$OUTPUT_FILE")
         done

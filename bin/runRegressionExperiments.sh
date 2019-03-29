@@ -17,6 +17,7 @@ GRAPH_NAME=${6:-Facebook}
 GRAPH_FORMAT=${7:-.edgelist}
 NUM_THREADS=${8:-8}
 MODEL_PATH=${9:-models}
+FORCE=${10:-}
 
 # All the available tasks -- each metric will be learned upon with 50:50 splits, using a single layer perceptron
 # - If the output is meant to be in [0..1], we use a sigmoid activation
@@ -55,7 +56,11 @@ do
             DEST_PATH="MODEL_PATH/$GRAPH-K$K-D$D-E$E-C$C-M$M.$TASK.h5py"
             REGRESSION_COMMANDS="$REGRESSION_COMMAND '$TARGET_DIR/emb/$TARGET_EMB' '$GRAPH_PATH$GRAPH_NAME-C$GRAPH_FORMAT' '$TARGET_DIR/labels/$TARGET_ENC' '$DEST_PATH' '$TASK' '$MEASURE' '$NETWORK'; $REGRESSION_COMMANDS"
           done
+          DELETE_PATH="rm -f '$TARGET_DIR/emb/$TARGET_EMB'"
           CMD="$TRAIN_COMMAND '$GRAPH_PATH/$GRAPH_NAME$GRAPH_FORMAT' '$TARGET_DIR/labels/$TARGET_ENC' '$TARGET_DIR/walk/$TARGET_WALK' '$TARGET_DIR/emb/$TARGET_EMB' '-d $K' '' '-d $D -c $C -e $E -M $M' '-t $NUM_THREADS -v 2'; $REGRESSION_COMMANDS";
+          if [[ ! -z "$FORCE" ]]; then
+            CMD="$DELETE_PATH; $CMD"
+          fi
           COMMANDS_ARRAY+=("$CMD")
           OUTPUTS_ARRAY+=("$OUTPUT_FILE")
         done
