@@ -1,8 +1,9 @@
-# Download all graphs
-./graph/fetch.sh "graph/" "graph/download.sh" "python graph/preprocess_graphsage.py" "python graph/preprocess_cocit.py"
-
 # Prepare the packages and libraries
 ./bin/preparePackages.sh
+module load python-igraph/0.7.1.post6-foss-2017a-Python-3.6.4
+
+# Download all graphs
+./graph/fetch.sh "graph/" "graph/download.sh" "python graph/preprocess_graphsage.py" "python graph/preprocess_cocit.py"
 
 # Prepare sampled directory
 NUM_SAMPLES="3"

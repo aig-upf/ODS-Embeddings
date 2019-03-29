@@ -1,4 +1,4 @@
-module load Python/2.7.12-foss-2017a
+module load python-igraph/0.7.1.post6-foss-2017a-Python-3.6.4
 
 # if igraph gives you trouble, install it from: 
 #    https://igraph.org/c/#downloads
