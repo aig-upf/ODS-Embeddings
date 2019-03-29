@@ -2,8 +2,6 @@
 import math
 import numpy as np
 from collections import Counter, defaultdict
-from networkx.classes.function import degree
-from networkx.generators.ego import ego_graph
 
 from multiprocessing import Pool
 
