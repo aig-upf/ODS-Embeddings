@@ -16,8 +16,8 @@ NUM_THREADS=${5:-8}
 FORCE=${6:-}
 
 D=32; E=250; C=6; M=2; K=2
-KEYS=(D D D E E E C C C C C M M K K)
-VALUES=(32 64 128 50 250 500 2 4 6 8 10 1 2 1 2)
+KEYS=(D D D E E C C C C M K)
+VALUES=(32 64 128 50 500 2 4 8 10 1 1)
 COMMANDS_ARRAY=()
 for i in `seq 0 $((${#KEYS[@]} - 1))`; do
   SETTING=${KEYS[$i]}
