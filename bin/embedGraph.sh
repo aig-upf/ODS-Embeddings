@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -J EmbedGraphs
 #SBATCH -p high
-#SBATCH -n 15 #number of tasks
+#SBATCH -n 1 #number of tasks
 #SBATCH -c 8
 #SBATCH --mem=16384
 #SBATCH --array=1-15:1
@@ -44,9 +44,9 @@ done
 
 if [[ ! -z "$SLURM_ARRAY_TASK_ID" ]]; then
   INDEX=$((SLURM_ARRAY_TASK_ID - 1))
-  echo "${COMMANDS_ARRAY[$INDEX]} >> ${OUTPUTS_ARRAY[$INDEX]}" 
+  eval "${COMMANDS_ARRAY[$INDEX]} >> ${OUTPUTS_ARRAY[$INDEX]}" 
 else
   for i in `seq 0 $((${#COMMANDS_ARRAY[@]} - 1))`; do
-    echo "${COMMANDS_ARRAY[$i]} >> ${OUTPUTS_ARRAY[$i]}"
+    eval "${COMMANDS_ARRAY[$i]} >> ${OUTPUTS_ARRAY[$i]}"
   done
 fi
