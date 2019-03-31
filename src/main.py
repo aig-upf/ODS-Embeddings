@@ -60,7 +60,7 @@ def parse_commands():
     embed_args.add_argument('-m', '--minn', help='Minimum ordered degree sequence ngram size. Default is 1.', type=int, default=1)
     embed_args.add_argument('-M', '--maxn', help='Maximum ordered degree sequence ngram size. Default is 1.', type=int, default=2)
     embed_args.add_argument('-d', '--dimensions', help='Dimensionality of the embedding vectors.', type=int, default=32)
-    embed_args.add_argument('-l', '--learning-rate', help='Learning rate.', type=float, default=0.1)
+    embed_args.add_argument('-l', '--learning-rate', help='Learning rate.', type=float, default=0.05)
     embed_args.add_argument('-w', '--walk', help='Input walk file to train the model on.', type=str, required=True)
     embed_args.add_argument('-o', '--output', help='Output file for the trained embedding model.', type=str, required=True)
 
