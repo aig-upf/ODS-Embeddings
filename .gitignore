@@ -10,6 +10,9 @@ experiments/*.log
 # if fasttext is built in the folder, also ignore it
 fastText
 
+# ignore slurm outputs
+slurm-*
+
 # large graphs are fetched, not kept on the repo
 graph/sampled/*
 graph/BlogCatalog/*
