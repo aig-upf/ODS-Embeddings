@@ -6,9 +6,7 @@
 #SBATCH --mem=16384
 #SBATCH --array=1-15:1
 
-if [[ -x "$(command -v module)" ]]; then
-  module load python-igraph/0.7.1.post6-foss-2017a-Python-3.6.4
-fi
+module load python-igraph/0.7.1.post6-foss-2017a-Python-3.6.4
 
 OUTPUT_DIR=${1:-experiments/emb}
 TRAIN_COMMAND=${2:-bin/train.sh}
