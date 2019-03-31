@@ -26,10 +26,10 @@ for i in `seq 0 $((${#KEYS[@]} - 1))`; do
   declare _$SETTING=$VALUE
 
   INPUT_PATH="$GRAPH_PATH/$GRAPH.edgelist"
-  ENCODING_PATH="$TARGET_DIR/label/$GRAPH-K$_K.json"
-  WALK_PATH="$TARGET_DIR/walk/$GRAPH-K$_K.walk"
-  EMB_PATH="$TARGET_DIR/emb/$GRAPH-K$_K-D$_D-E$_E-C$_C-M$_M.emb"
-  DELETE_PATH="rm -f '$TARGET_DIR/emb/$TARGET_EMB'"
+  ENCODING_PATH="labels/$GRAPH-K$_K.json"
+  WALK_PATH="walk/$GRAPH-K$_K.walk"
+  EMB_PATH="emb/$GRAPH-K$_K-D$_D-E$_E-C$_C-M$_M.emb"
+  DELETE_PATH="rm -f 'emb/$TARGET_EMB'"
   CMD="$TRAIN_COMMAND '$INPUT_PATH' '$ENCODING_PATH' '$WALK_PATH' '$EMB_PATH' '-d $_K' '' '-d $_D -c $_C -e $_E -M $_M' '-t $NUM_THREADS -v 2'";
   if [[ ! -z "$FORCE" ]]; then
     CMD="$DELETE_PATH; $CMD"
