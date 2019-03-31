@@ -3,6 +3,7 @@
 #SBATCH -p high
 #SBATCH -n 2 #number of tasks
 #SBATCH -c 8
+#SBATCH --mem=16384
 #SBATCH --array=1-2:1
 
 module load python-igraph/0.7.1.post6-foss-2017a-Python-3.6.4
@@ -34,9 +35,9 @@ done
 # - Otherwise, it will run all the tasks sequentially
 if [[ ! -z "$SLURM_ARRAY_TASK_ID" ]]; then
   INDEX=$((SLURM_ARRAY_TASK_ID-1))
-  eval "${COMMANDS_ARRAY[$INDEX]} > ${OUTPUTS_ARRAY[$INDEX]}"
+  eval "${COMMANDS_ARRAY[$INDEX]} >> ${OUTPUTS_ARRAY[$INDEX]}"
 else
-  for i in seq ${#COMMANDS_ARRAY[@]}; do
-    ${COMMANDS_ARRAY[$i]} > ${OUTPUTS_ARRAY[$i]}
+  for i in `seq 0 $((${#COMMANDS_ARRAY[@]} - 1))`; do
+    ${COMMANDS_ARRAY[$i]} >> ${OUTPUTS_ARRAY[$i]}
   done
 fi
