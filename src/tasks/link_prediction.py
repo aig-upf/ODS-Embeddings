@@ -2,7 +2,7 @@ import random
 from sklearn.metrics import roc_auc_score
 from sklearn.linear_model import LogisticRegression
 
-from ml_utils import edge_features
+from .ml_utils import edge_features
 
 
 def get_labelled_edges(G, mapping):
