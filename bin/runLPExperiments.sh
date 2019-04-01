@@ -26,7 +26,7 @@ for i in `seq 0 $((${#KEYS[@]} - 1))`; do
   INPUT_PATH="$GRAPH_PATH/$GRAPH-C.edgelist"
   ENCODING_PATH="labels/$GRAPH-K$_K.json"
   EMB_PATH="emb/$GRAPH-K$_K-D$_D-E$_E-C$_C-M$_M.emb"
-  CMD="$TRAIN_COMMAND '$EMB_PATH' '$INPUT_PATH' '$ENCODING_PATH'";
+  CMD="$LINK_COMMAND '$EMB_PATH' '$INPUT_PATH' '$ENCODING_PATH'";
   OUTPUT="$OUTPUT_DIR/$GRAPH-K$_K-D$_D-E$_E-C$_C-M$_M.log"
   COMMANDS_ARRAY+=("$CMD")
   OUTPUTS_ARRAY+=("$OUTPUT")
