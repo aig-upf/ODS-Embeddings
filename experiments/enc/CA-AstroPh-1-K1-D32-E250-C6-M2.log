@@ -1,0 +1,20 @@
+[TIME] ENCODE 0 s
+[TIME] WALK 1 s
+[TIME] EMBED 0 s
+Total nodes: 18771
+Total edges: 198080
+Generating structural labels.
+Total degrees: 249
+Total labels: 7558
+Avg. structural label length: 29.04
+Max. structural label length: 291
+[TIME] ENCODE 8 s
+Total nodes: 18771
+Total edges: 198080
+Generating random walks.
+[TIME] WALK 12 s
+Training model from the random walks in "/walk/CA-AstroPh-1-K1.walk".
+[TIME] EMBED 4 s
+Training model from the random walks in "walk/CA-AstroPh-1-K1.walk".
+Saved fasttext embedding model in "emb/CA-AstroPh-1-K1-D32-E250-C6-M2.emb".
+[TIME] EMBED 8120 s

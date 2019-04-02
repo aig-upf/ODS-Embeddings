@@ -55,7 +55,7 @@ def parse_commands():
 
     embed_args = main_subs.add_parser('embed', description='Network Embedding training from Random Walks.')
     embed_args.add_argument('-a', '--algorithm', help='Embedding algorithm to use out of \{fasttext,word2vec\}. Default is "fasttext".', type=str, default='fasttext')
-    embed_args.add_argument('-c', '--context', help='Context size for optimization. Default is 2.', type=int, default=2)
+    embed_args.add_argument('-c', '--context', help='Context size for optimization. Default is 6.', type=int, default=6)
     embed_args.add_argument('-e', '--epochs', help='Number of epochs. If set to 0, no training is performed. Default is 25.', type=int, default=25)
     embed_args.add_argument('-m', '--minn', help='Minimum ordered degree sequence ngram size. Default is 1.', type=int, default=1)
     embed_args.add_argument('-M', '--maxn', help='Maximum ordered degree sequence ngram size. Default is 1.', type=int, default=2)

@@ -1,0 +1,14 @@
+Total nodes: 10312
+Total edges: 333983
+Generating structural labels.
+Total degrees: 3912
+Total labels: 10104
+Avg. structural label length: 1465.78
+Max. structural label length: 1665
+Saved structural labels in "./labels/BlogCatalog-K2.json".
+[TIME] ENCODE 115 s
+Total nodes: 10312
+Total edges: 333983
+Generating random walks.
+Saved random walks in "./walk/BlogCatalog-K2.walk".
+[TIME] WALK 89 s

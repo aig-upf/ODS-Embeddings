@@ -1,0 +1,21 @@
+[TIME] ENCODE 1 s
+[TIME] WALK 0 s
+[TIME] EMBED 0 s
+Total nodes: 10312
+Total edges: 166991
+Generating structural labels.
+Total degrees: 1897
+Total labels: 9632
+Avg. structural label length: 793.80
+Max. structural label length: 1147
+[TIME] ENCODE 62 s
+Total nodes: 10312
+Total edges: 166991
+Generating random walks.
+[TIME] WALK 14 s
+Training model from the random walks in "/walk/BlogCatalog-1-K2.walk".
+[TIME] EMBED 4 s
+[TIME] EMBED 3173 s
+Training model from the random walks in "walk/BlogCatalog-1-K2.walk".
+Saved fasttext embedding model in "emb/BlogCatalog-1-K2-D128-E250-C6-M2.emb".
+[TIME] EMBED 88946 s

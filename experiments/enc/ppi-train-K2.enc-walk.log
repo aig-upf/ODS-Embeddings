@@ -1,0 +1,14 @@
+Total nodes: 44906
+Total edges: 633198
+Generating structural labels.
+Total degrees: 665
+Total labels: 42950
+Avg. structural label length: 329.69
+Max. structural label length: 699
+Saved structural labels in "./labels/ppi-train-K2.json".
+[TIME] ENCODE 48 s
+Total nodes: 44906
+Total edges: 633198
+Generating random walks.
+Saved random walks in "./walk/ppi-train-K2.walk".
+[TIME] WALK 155 s

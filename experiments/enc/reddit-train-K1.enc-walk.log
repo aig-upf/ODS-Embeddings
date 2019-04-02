@@ -1,0 +1,14 @@
+Total nodes: 150403
+Total edges: 4977027
+Generating structural labels.
+Total degrees: 926
+Total labels: 132681
+Avg. structural label length: 40.45
+Max. structural label length: 340
+Saved structural labels in "./labels/reddit-train-K1.json".
+[TIME] ENCODE 80 s
+Total nodes: 150403
+Total edges: 4977027
+Generating random walks.
+Saved random walks in "./walk/reddit-train-K1.walk".
+[TIME] WALK 158 s

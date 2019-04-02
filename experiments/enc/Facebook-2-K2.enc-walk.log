@@ -1,0 +1,14 @@
+Total nodes: 4039
+Total edges: 44117
+Generating structural labels.
+Total degrees: 243
+Total labels: 3669
+Avg. structural label length: 150.42
+Max. structural label length: 396
+Saved structural labels in "./labels/Facebook-2-K2.json".
+[TIME] ENCODE 4 s
+Total nodes: 4039
+Total edges: 44117
+Generating random walks.
+Saved random walks in "./walk/Facebook-2-K2.walk".
+[TIME] WALK 6 s

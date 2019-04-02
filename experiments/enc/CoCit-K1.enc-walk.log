@@ -1,0 +1,14 @@
+Total nodes: 44034
+Total edges: 390722
+Generating structural labels.
+Total degrees: 181
+Total labels: 10663
+Avg. structural label length: 17.45
+Max. structural label length: 128
+Saved structural labels in "./labels/CoCit-K1.json".
+[TIME] ENCODE 13 s
+Total nodes: 44034
+Total edges: 390722
+Generating random walks.
+Saved random walks in "./walk/CoCit-K1.walk".
+[TIME] WALK 33 s
