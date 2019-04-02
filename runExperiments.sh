@@ -3,18 +3,18 @@ if [[ -z "$1" ]] || [[ $1 = "link" ]];
 then
   for N in `seq 1`;
   do
-    sbatch bin/runLPExperiments.sh '.' 'experiments/lp/' 'bin/train.sh' 'bin/linkPredictionExperiment.sh' 'graph/sampled/' "Facebook-$N" '.edgelist' '8'
-    sbatch bin/runLPExperiments.sh '.' 'experiments/lp/' 'bin/train.sh' 'bin/linkPredictionExperiment.sh' 'graph/sampled/' "BlogCatalog-$N" '.edgelist' '8'
-    sbatch bin/runLPExperiments.sh '.' 'experiments/lp/' 'bin/train.sh' 'bin/linkPredictionExperiment.sh' 'graph/sampled/' "CA-AstroPh-$N" '.edgelist' '8'
+    sbatch bin/runLPExperiments.sh 'experiments/lp/' 'bin/linkPredictionExperiment.sh' 'graph/sampled/' "Facebook-$N"
+    sbatch bin/runLPExperiments.sh 'experiments/lp/' 'bin/linkPredictionExperiment.sh' 'graph/sampled/' "BlogCatalog-$N"
+    sbatch bin/runLPExperiments.sh 'experiments/lp/' 'bin/linkPredictionExperiment.sh' 'graph/sampled/' "CA-AstroPh-$N"
   done
 fi
 
 # Run classification experiments
 if  [[ -z "$1" ]] || [[ $1 = "classify" ]];
 then
-  sbatch bin/runClassificationExperiments.sh '.' 'experiments/cmty/' 'bin/train.sh' 'bin/classificationExperiment.sh' 'graph/BlogCatalog' "BlogCatalog" '.edgelist' '8' 'models/' '.json' 'label.micro' "-H 0 -N 0 -a 'tanh' -A 'sigmoid' -L 'binary_crossentropy' -P 'sgd' -E 30"
-  sbatch bin/runClassificationExperiments.sh '.' 'experiments/cmty/' 'bin/train.sh' 'bin/classificationExperiment.sh' 'graph/Youtube'     "Youtube"     '.edgelist' '8' 'models/' '.json' 'label.micro' "-H 0 -N 0 -a 'tanh' -A 'sigmoid' -L 'binary_crossentropy' -P 'sgd' -E 50"
-  sbatch bin/runClassificationExperiments.sh '.' 'experiments/cls/' 'bin/train.sh' 'bin/classificationExperiment.sh' 'graph/'       "CoCit"        '.edgelist' '8' 'models/' '.json' 'category.micro' "-H 0 -N 0 -a 'tanh' -A 'sigmoid' -L 'binary_crossentropy' -P 'sgd' -E 30"
+  sbatch bin/runClassificationExperiments.sh '.' 'experiments/cmty/' 'bin/train.sh' 'bin/classificationExperiment.sh' 'graph/BlogCatalog' "BlogCatalog" '.edgelist' '8' 'models/' '.json' 'label.micro'    "-H 0 -N 0 -a 'tanh' -A 'sigmoid' -L 'binary_crossentropy' -P 'sgd' -E 30"
+  sbatch bin/runClassificationExperiments.sh '.' 'experiments/cmty/' 'bin/train.sh' 'bin/classificationExperiment.sh' 'graph/Youtube'     "Youtube"     '.edgelist' '8' 'models/' '.json' 'label.micro'    "-H 0 -N 0 -a 'tanh' -A 'sigmoid' -L 'binary_crossentropy' -P 'sgd' -E 50"
+  sbatch bin/runClassificationExperiments.sh '.' 'experiments/cls/'  'bin/train.sh' 'bin/classificationExperiment.sh' 'graph/'            "CoCit"       '.edgelist' '8' 'models/' '.json' 'category.micro' "-H 0 -N 0 -a 'tanh' -A 'sigmoid' -L 'binary_crossentropy' -P 'sgd' -E 30"
 fi
 
 # Run regression experiments

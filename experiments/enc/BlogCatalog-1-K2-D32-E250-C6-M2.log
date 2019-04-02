@@ -1,0 +1,88 @@
+[TIME] ENCODE 0 s
+[TIME] ENCODE 1 s
+[TIME] WALK 1 s
+[TIME] WALK 0 s
+[TIME] EMBED 0 s
+[TIME] EMBED 0 s
+[TIME] ENCODE 0 s
+[TIME] WALK 1 s
+[TIME] EMBED 0 s
+[TIME] ENCODE 0 s
+[TIME] WALK 0 s
+[TIME] EMBED 0 s
+[TIME] ENCODE 0 s
+[TIME] WALK 0 s
+[TIME] EMBED 0 s
+Total nodes: 10312
+Total edges: 166991
+Generating structural labels.
+Total nodes: 10312
+Total edges: 166991
+Generating structural labels.
+Total degrees: 1897
+Total labels: 9632
+Avg. structural label length: 793.80
+Max. structural label length: 1147
+[TIME] ENCODE 60 s
+Total nodes: 10312
+Total edges: 166991
+Generating structural labels.
+Total degrees: 1897
+Total labels: 9632
+Avg. structural label length: 793.80
+Max. structural label length: 1147
+[TIME] ENCODE 62 s
+Total nodes: 10312
+Total edges: 166991
+Generating structural labels.
+Total nodes: 10312
+Total edges: 166991
+Generating structural labels.
+Total nodes: 10312
+Total edges: 166991
+Generating random walks.
+Total nodes: 10312
+Total edges: 166991
+Generating random walks.
+[TIME] WALK 17 s
+[TIME] WALK 15 s
+Training model from the random walks in "/walk/BlogCatalog-1-K2.walk".
+[TIME] EMBED 4 s
+Training model from the random walks in "/walk/BlogCatalog-1-K2.walk".
+[TIME] EMBED 4 s
+Total degrees: 1897
+Total labels: 9632
+Avg. structural label length: 793.80
+Max. structural label length: 1147
+[TIME] ENCODE 45 s
+Total nodes: 10312
+Total edges: 166991
+Generating random walks.
+Total degrees: 1897
+Total labels: 9632
+Avg. structural label length: 793.80
+Max. structural label length: 1147
+[TIME] ENCODE 48 s
+Total degrees: 1897
+Total labels: 9632
+Avg. structural label length: 793.80
+Max. structural label length: 1147
+[TIME] ENCODE 49 s
+Total nodes: 10312
+Total edges: 166991
+Generating random walks.
+Total nodes: 10312
+Total edges: 166991
+Generating random walks.
+[TIME] WALK 15 s
+[TIME] WALK 15 s
+[TIME] WALK 15 s
+Training model from the random walks in "/walk/BlogCatalog-1-K2.walk".
+[TIME] EMBED 5 s
+Training model from the random walks in "/walk/BlogCatalog-1-K2.walk".
+[TIME] EMBED 4 s
+Training model from the random walks in "/walk/BlogCatalog-1-K2.walk".
+[TIME] EMBED 4 s
+Training model from the random walks in "walk/BlogCatalog-1-K2.walk".
+Saved fasttext embedding model in "emb/BlogCatalog-1-K2-D32-E250-C6-M2.emb".
+[TIME] EMBED 29589 s

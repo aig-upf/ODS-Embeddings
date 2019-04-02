@@ -4,7 +4,7 @@
 #SBATCH -n 1 #number of tasks
 #SBATCH -c 8
 #SBATCH --mem=16384
-#SBATCH --array=1-15:1
+#SBATCH --array=1-11:1
 
 module load python-igraph/0.7.1.post6-foss-2017a-Python-3.6.4
 

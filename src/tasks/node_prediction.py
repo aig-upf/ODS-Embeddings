@@ -4,7 +4,7 @@ from scipy.stats import kendalltau, spearmanr, rankdata
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import fbeta_score, mean_squared_error, median_absolute_error, mean_squared_log_error
 
-from ml_utils import prepare_data
+from .ml_utils import prepare_data
 
 SKLEARN_AVERAGES = ['binary', 'micro', 'macro', 'samples', 'weighted']
 

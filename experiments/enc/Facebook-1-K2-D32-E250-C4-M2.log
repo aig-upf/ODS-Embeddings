@@ -1,0 +1,20 @@
+[TIME] ENCODE 1 s
+[TIME] WALK 0 s
+[TIME] EMBED 0 s
+Total nodes: 4039
+Total edges: 44117
+Generating structural labels.
+Total degrees: 235
+Total labels: 3650
+Avg. structural label length: 149.58
+Max. structural label length: 402
+[TIME] ENCODE 15 s
+Total nodes: 4039
+Total edges: 44117
+Generating random walks.
+[TIME] WALK 9 s
+Training model from the random walks in "/walk/Facebook-1-K2.walk".
+[TIME] EMBED 7 s
+Training model from the random walks in "walk/Facebook-1-K2.walk".
+Saved fasttext embedding model in "emb/Facebook-1-K2-D32-E250-C4-M2.emb".
+[TIME] EMBED 4668 s

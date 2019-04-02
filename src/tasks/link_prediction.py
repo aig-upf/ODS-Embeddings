@@ -2,11 +2,12 @@ import random
 from sklearn.metrics import roc_auc_score
 from sklearn.linear_model import LogisticRegression
 
-from ml_utils import edge_features
+from .ml_utils import edge_features
 
 
 def get_labelled_edges(G, mapping):
-    to_mapping = lambda v: (v, mapping.get(G.vs[v]['name'], None))
+    # empty string gets the null vector
+    to_mapping = lambda v: (v, mapping.get(G.vs[v]['name'], ''))
 
     # get the edges that have mappings for both nodes
     raw_edges = [tuple(map(to_mapping, t.tuple)) for t in G.es]

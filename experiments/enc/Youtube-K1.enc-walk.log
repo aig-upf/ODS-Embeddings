@@ -1,0 +1,14 @@
+Total nodes: 1134890
+Total edges: 2987624
+Generating structural labels.
+Total degrees: 1052
+Total labels: 50798
+Avg. structural label length: 27.27
+Max. structural label length: 1051
+Saved structural labels in "./labels/Youtube-K1.json".
+[TIME] ENCODE 1314 s
+Total nodes: 1134890
+Total edges: 2987624
+Generating random walks.
+Saved random walks in "./walk/Youtube-K1.walk".
+[TIME] WALK 1474 s
