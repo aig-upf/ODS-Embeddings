@@ -13,6 +13,6 @@ do
   do
     GRAPH="${GRAPH_NAMES[$i]}"
     GRAPH_PATH="${GRAPH_PATHS[$i]}$GRAPH"
-    sbatch bin/embedGraphBest.sh 'experiments/enc' 'bin/train.sh' "$GRAPH_PATH" "$GRAPH" "$K" "$NUM_THREADS"
+    sbatch bin/embedGraphBest.sh 'experiments/enc' 'bin/train.sh' "graph/$GRAPH_PATH" "$GRAPH" "$K" "$NUM_THREADS"
   done
 done
