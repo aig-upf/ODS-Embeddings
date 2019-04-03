@@ -12,9 +12,10 @@ TRAIN_COMMAND=${2:-bin/train.sh}
 GRAPH_PATH=${3:-graph}
 GRAPH=${4:-Facebook}
 NUM_THREADS=${5:-32}
-FORCE=${6:-}
+GRAPH_K=${6:-2}
+FORCE=${7:-}
 
-D=32; E=250; C=6; M=2; K=2
+D=32; E=250; C=6; M=2; K=$GRAPH_K
 INPUT_PATH="$GRAPH_PATH/$GRAPH.edgelist"
 ENCODING_PATH="labels/$GRAPH-K$K.json"
 WALK_PATH="walk/$GRAPH-K$K.walk"
