@@ -1,14 +1,14 @@
 Total nodes: 18771
-Total edges: 198080
+Total edges: 99025
 Generating structural labels.
-Total degrees: 447
-Total labels: 13832
-Avg. structural label length: 211.11
-Max. structural label length: 895
+Total degrees: 220
+Total labels: 14428
+Avg. structural label length: 84.92
+Max. structural label length: 477
 Saved structural labels in "./labels/CA-AstroPh-1-K2.json".
-[TIME] ENCODE 13 s
+[TIME] ENCODE 8 s
 Total nodes: 18771
-Total edges: 198080
+Total edges: 99025
 Generating random walks.
 Saved random walks in "./walk/CA-AstroPh-1-K2.walk".
-[TIME] WALK 50 s
+[TIME] WALK 15 s
