@@ -18,3 +18,6 @@ Training model from the random walks in "/walk/CA-AstroPh-1-K1.walk".
 Training model from the random walks in "walk/CA-AstroPh-1-K1.walk".
 Saved fasttext embedding model in "emb/CA-AstroPh-1-K1-D32-E250-C6-M2.emb".
 [TIME] EMBED 8120 s
+Training model from the random walks in "walk/CA-AstroPh-1-K1.walk".
+Saved fasttext embedding model in "emb/CA-AstroPh-1-K1-D32-E250-C6-M2.emb".
+[TIME] EMBED 2850 s
