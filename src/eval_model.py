@@ -51,8 +51,9 @@ if __name__ == "__main__":
 
     # load the model and mapping
     model = load_model(args.model)
-    mapping = {int(k): v for k, v in json.load(open(args.mapping)).items()}
+    mapping = {k: v for k, v in json.load(open(args.mapping)).items()}
     struct_labels = sorted(set(mapping.values()))
+    struct_indices = {s: i for i, s in enumerate(struct_labels)}
 
     # load graph
     G = read_graph(args.graph, args.weighted, args.directed, args.verbose)
@@ -62,7 +63,7 @@ if __name__ == "__main__":
     indices = {}
     for node in sorted(G.vs):
         indices[len(indices)] = node.index
-        struct_label = mapping[node.index]
+        struct_label = mapping[node['name']]
         embedding_vector = model.get_word_vector(struct_label)
 
         node['struct_label'] = struct_label
@@ -90,7 +91,8 @@ if __name__ == "__main__":
     if task in ['print', 'all']:
         min_c = min(classes)
         for n, c in zip(sorted(G.vs), classes):
-            print('{} {}'.format(n.index, c - (min_c if min_c < 0 else 0)))
+            label_index = struct_indices[n['struct_label']]
+            print('{} {} {}'.format(n.index, c - (min_c if min_c < 0 else 0), label_index))
     if task in ['plot', 'all']:
         plot_graph(G, classes)
 

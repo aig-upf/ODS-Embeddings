@@ -6,7 +6,7 @@ def read_graph(graph_path, weighted=False, directed=False, verbose=1):
     '''
     Reads the input network in networkx.
     '''
-    G = ig.Graph.Read_Ncol(graph_path, names=True, weights=weighted, directed=directed)
+    G = ig.Graph.Read_Ncol(graph_path, names=True, weights=weighted, directed=directed).simplify()
 
     if verbose:
         print('Total nodes: {}'.format(len(G.vs)))
