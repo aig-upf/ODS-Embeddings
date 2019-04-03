@@ -92,7 +92,7 @@ if __name__ == "__main__":
         min_c = min(classes)
         for n, c in zip(sorted(G.vs), classes):
             label_index = struct_indices[n['struct_label']]
-            print('{} {} {}'.format(n.index, c - (min_c if min_c < 0 else 0), label_index))
+            print('{},{},{}'.format(n.index, c - (min_c if min_c < 0 else 0), label_index))
     if task in ['plot', 'all']:
         plot_graph(G, classes)
 
