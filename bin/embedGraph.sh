@@ -2,7 +2,7 @@
 #SBATCH -J EmbedGraphs
 #SBATCH -p high
 #SBATCH -n 1 #number of tasks
-#SBATCH -c 8
+#SBATCH -c 32
 #SBATCH --mem=16384
 #SBATCH --array=1-11:1
 
