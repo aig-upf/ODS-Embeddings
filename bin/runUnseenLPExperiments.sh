@@ -12,7 +12,7 @@ OUTPUT_DIR=${1:-experiments/lp}
 LINK_COMMAND=${2:-bin/linkPredictionExperiment.sh}
 GRAPH_PATH=${3:-graph/sampled}
 TRAIN_GRAPH=${4:-Facebook-1}
-MODEL_GRAPH=${4:-Facebook-2}
+MODEL_GRAPH=${5:-Facebook-2}
 
 D=32; E=250; C=6; M=2; K=2
 KEYS=(D D D E E C C C C M K)
