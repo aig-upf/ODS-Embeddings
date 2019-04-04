@@ -32,7 +32,7 @@ if [[ ! -z "$FORCE" ]]; then
 fi
 
 # Run all tasks
-for T_INDEX in `seq ${#TASKS}`;
+for T_INDEX in `seq 0 $((${#TASKS[@]} - 1))`;
 do
   TASK=${TASKS[$T_INDEX]}
   MEASURE=${MEASURES[$T_INDEX]}

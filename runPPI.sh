@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -J EmbedInductiveGraphs
+#SBATCH -J RunPPI
 #SBATCH -p high
 #SBATCH -n 1 #number of tasks
 #SBATCH -c 40
