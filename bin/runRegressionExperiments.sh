@@ -10,8 +10,8 @@ OUTPUT_DIR=${1:-experiments/reg}
 REGRESSION_COMMAND=${2:-bin/regressionExperiment.sh}
 GRAPH_PATH=${3:-graph}
 GRAPH=${4:-Facebook}
-GRAPH_K=${6:-2}
-FORCE=${7:-}
+GRAPH_K=${5:-2}
+FORCE=${6:-}
 D=32; E=250; C=6; M=2; K=$GRAPH_K
 
 # Tasks to compute
@@ -38,5 +38,5 @@ do
   NETWORK=${NETWORKS[$T_INDEX]}
   DEST_PATH="models/$GRAPH-K$K-D$D-E$E-C$C-M$M.$TASK.h5py"
   OUTPUT_FILE="$OUTPUT_DIR/$GRAPH_NAME-K$K-D$D-E$E-C$C-M$M.$TASK.log"
-  $REGRESSION_COMMAND "emb/$TARGET_EMB" "$GRAPH_PATH$GRAPH_NAME-C.edgelist" "labels/$TARGET_ENC" "$DEST_PATH" "$TASK" "$MEASURE" "$NETWORK" >> $OUTPUT_FILE
+  $REGRESSION_COMMAND "emb/$TARGET_EMB" "$GRAPH_PATH$GRAPH_NAME.edgelist" "labels/$TARGET_ENC" "$DEST_PATH" "$TASK" "$MEASURE" "$NETWORK" >> $OUTPUT_FILE
 done
