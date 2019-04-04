@@ -2,7 +2,7 @@
 #SBATCH -J EmbedInductiveGraphs
 #SBATCH -p high
 #SBATCH -n 1 #number of tasks
-#SBATCH -c 50
+#SBATCH -c 40
 #SBATCH --mem=49152
 
 TARGET_PATH="${1:-experiments/cls/}"
@@ -12,7 +12,7 @@ NUM_EXPERIMENTS="${4:-25}"
 STEP="${5:-encode}"
 
 # Parameters -- since the graph is larger we need less epochs!
-NUM_THREADS=50
+NUM_THREADS=40
 D=64; E=100; C=6; M=2; K=$GRAPH_K
 
 module load python-igraph/0.7.1.post6-foss-2017a-Python-3.6.4
