@@ -4,6 +4,7 @@
 #SBATCH -n 1 #number of tasks
 
 module load python-igraph/0.7.1.post6-foss-2017a-Python-3.6.4
+module load Keras/2.2.4-foss-2017a-Python-3.6.4 
 
 # Load the desired variables
 OUTPUT_DIR=${1:-experiments/reg}
