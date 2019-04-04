@@ -73,7 +73,7 @@ def prepare_data(G, mapping, model, labels, feat_fn=None, remove_unlabeled=True,
     if vectorize:
         vector_fn, vector_size = make_label_vectorizer(labels, skip_none=remove_unlabeled)
     else:
-        vector_fn, vector_size = lambda l: l, np.asarray(labels.values())[0].size
+        vector_fn, vector_size = lambda l: l, np.asarray(list(labels.values()))[0].size
 
     # get the raw data
     instances  = [(n, vector_fn(l)) for (n, l) in zip(raw_nodes, raw_labels) 

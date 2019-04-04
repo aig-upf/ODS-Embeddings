@@ -22,7 +22,7 @@ if __name__ == "__main__":
         labels = json.load(f)
 
     # shuffle accordingly
-    label_mappings = labels.items()
+    label_mappings = [t for t in labels.items()]
     random.shuffle(label_mappings)
 
     # compute split sizes

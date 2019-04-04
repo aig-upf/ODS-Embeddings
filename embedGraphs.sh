@@ -5,8 +5,8 @@ sbatch bin/embedGraph.sh 'experiments/enc' 'bin/train.sh' 'graph/sampled' "CA-As
 
 # Embed every other graph with the best configuration found
 NUM_THREADS=32
-GRAPH_NAMES=("Facebook" "CA-AstroPh" "BlogCatalog"  "CoCit" "Youtube"  "Facebook-2" "Facebook-3" "CA-AstroPh-2" "CA-AstroPh-3")
-GRAPH_PATHS=(""         ""           "BlogCatalog/" ""      "Youtube/" "sampled/"   "sampled/"   "sampled/"     "sampled/")
+GRAPH_NAMES=("Facebook" "CA-AstroPh" "BlogCatalog"  "CoCit" "Facebook-2" "Facebook-3" "CA-AstroPh-2" "CA-AstroPh-3")
+GRAPH_PATHS=(""         ""           "BlogCatalog/" ""      "sampled/"   "sampled/"   "sampled/"     "sampled/")
 for i in `seq 0 $((${#GRAPH_NAMES[@]} - 1))`; 
 do
   for K in `seq 1 2`; 
