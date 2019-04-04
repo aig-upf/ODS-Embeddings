@@ -20,9 +20,9 @@ MEASURES=("mse" "mse" "mse" "mse")
 NETWORKS=("-H 0 -N 0 -a 'tanh' -A 'sigmoid' -L 'mse' -P 'sgd' -E 1000" "-H 16 -N 0 -a 'tanh' -A 'linear' -L 'mse' -P 'sgd' -E 1000" "-H 16 -N 0 -a 'tanh' -A 'sigmoid' -L 'mse' -P 'sgd' -E 1000" "-H 16 -N 0 -a 'tanh' -A 'sigmoid' -L 'mse' -P 'sgd' -E 1000")
 
 # Target files
-TARGET_ENC="$GRAPH_NAME-K$K.json"
-TARGET_WALK="$GRAPH_NAME-K$K.walk"
-TARGET_EMB="$GRAPH_NAME-K$K-D$D-E$E-C$C-M$M.emb"
+TARGET_ENC="$GRAPH-K$K.json"
+TARGET_WALK="$GRAPH-K$K.walk"
+TARGET_EMB="$GRAPH-K$K-D$D-E$E-C$C-M$M.emb"
 REGRESSION_COMMANDS=""
 
 # Whether or not to force the result
@@ -37,6 +37,6 @@ do
   MEASURE=${MEASURES[$T_INDEX]}
   NETWORK=${NETWORKS[$T_INDEX]}
   DEST_PATH="models/$GRAPH-K$K-D$D-E$E-C$C-M$M.$TASK.h5py"
-  OUTPUT_FILE="$OUTPUT_DIR/$GRAPH_NAME-K$K-D$D-E$E-C$C-M$M.$TASK.log"
-  $REGRESSION_COMMAND "emb/$TARGET_EMB" "$GRAPH_PATH$GRAPH_NAME.edgelist" "labels/$TARGET_ENC" "$DEST_PATH" "$TASK" "$MEASURE" "$NETWORK" >> $OUTPUT_FILE
+  OUTPUT_FILE="$OUTPUT_DIR/$GRAPH-K$K-D$D-E$E-C$C-M$M.$TASK.log"
+  $REGRESSION_COMMAND "emb/$TARGET_EMB" "$GRAPH_PATH$GRAPH.edgelist" "labels/$TARGET_ENC" "$DEST_PATH" "$TASK" "$MEASURE" "$NETWORK" >> $OUTPUT_FILE
 done
