@@ -9,6 +9,17 @@ then
   done
 fi
 
+# Run link prediction experiments on unseen graphs
+if [[ -z "$1" ]] || [[ $1 = "unseen" ]];
+then
+  for N in `seq 1`;
+  do
+    sbatch bin/runUnseenLPExperiments.sh 'experiments/lp/' 'bin/linkPredictionExperiment.sh' 'graph/sampled/' "Facebook-$N" "Facebook-$(($N + 1))"
+    sbatch bin/runUnseenLPExperiments.sh 'experiments/lp/' 'bin/linkPredictionExperiment.sh' 'graph/sampled/' "BlogCatalog-$N" "BlogCatalog-$(($N + 1))"
+    sbatch bin/runUnseenLPExperiments.sh 'experiments/lp/' 'bin/linkPredictionExperiment.sh' 'graph/sampled/' "CA-AstroPh-$N" "CA-AstroPh-$(($N + 1))"
+  done
+fi
+
 # Run classification experiments
 if  [[ -z "$1" ]] || [[ $1 = "classify" ]];
 then
