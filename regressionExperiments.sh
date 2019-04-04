@@ -6,7 +6,7 @@ do
   for K in `seq 1 2`; 
   do
     GRAPH="${GRAPH_NAMES[$i]}"
-    GRAPH_PATH="${GRAPH_PATHS[$i]}$GRAPH"
+    GRAPH_PATH="${GRAPH_PATHS[$i]}"
     sbatch bin/runRegressionExperiments.sh 'experiments/reg' 'bin/regressionExperiment.sh' "graph/$GRAPH_PATH" "$GRAPH" "$K"
   done
 done
