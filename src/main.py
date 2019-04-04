@@ -123,7 +123,7 @@ def compute_command(G, args):
         neighs = {i: set([x for x in n if i != x]) 
                   for i, n in enumerate(G.neighborhood(order=1))}
         def overlap(node):
-            nbr = neighs[i]
+            nbr = neighs[node]
             nbr_of_nbr = set()
             for n in nbr:
                 if n != node:
@@ -136,7 +136,7 @@ def compute_command(G, args):
         neighs = {i: set([x for x in n if i != x]) 
                   for i, n in enumerate(G.neighborhood(order=1))}
         def overlap(node):
-            nbr = neighs[i]
+            nbr = neighs[node]
             total = 0.0
             for n in nbr:
                 nbr_of_nbr = neighs[n]

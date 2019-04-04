@@ -3,8 +3,6 @@ MAIN="python src/main.py"
 LEARN="python src/learn.py"
 SPLIT="python src/split_labels.py"
 
-module load Python/2.7.12-foss-2017a
-
 # input/output files
 MODEL="${1:-emb/Facebook.emb}"
 GRAPH="${2:-graph/Facebook.edgelist}"
