@@ -2,7 +2,7 @@
 #SBATCH -J EmbedInductiveGraphs
 #SBATCH -p high
 #SBATCH -n 1 #number of tasks
-#SBATCH -c 100
+#SBATCH -c 64
 #SBATCH --mem=16384
 
 TARGET_PATH=${1:-experiments/cls/}
@@ -10,8 +10,11 @@ GRAPH_K=${2:-2}
 NUM_EPOCHS="${3:-100}"
 NUM_EXPERIMENTS="${4:-25}"
 
-NUM_THREADS=100
+NUM_THREADS=64
 D=32; E=250; C=6; M=2; K=$GRAPH_K
+
+module load python-igraph/0.7.1.post6-foss-2017a-Python-3.6.4
+module load Keras/2.2.4-foss-2017a-Python-3.6.4 
 
 # 1. Train a model on the training split graphs
 ./bin/train.sh graph/PPI/ppi-train.edgelist labels/ppi-$K.train.json walk/ppi-$K.train.walk emb/ppi-$K.train.emb "-d $K -c" '' "-d $D -c $C -e $E -M $M" "-t $NUM_THREADS -v 2" '-v 2'
