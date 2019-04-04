@@ -2,8 +2,8 @@
 #SBATCH -J EmbedInductiveGraphs
 #SBATCH -p high
 #SBATCH -n 1 #number of tasks
-#SBATCH -c 40
-#SBATCH --mem=32768
+#SBATCH -c 50
+#SBATCH --mem=49152
 
 TARGET_PATH="${1:-experiments/cls/}"
 GRAPH_K="${2:-2}"
@@ -11,13 +11,14 @@ NUM_EPOCHS="${3:-100}"
 NUM_EXPERIMENTS="${4:-25}"
 STEP="${5:-encode}"
 
-NUM_THREADS=40
-D=32; E=250; C=6; M=2; K=$GRAPH_K
+# Parameters -- since the graph is larger we need less epochs!
+NUM_THREADS=50
+D=64; E=100; C=6; M=2; K=$GRAPH_K
 
 module load python-igraph/0.7.1.post6-foss-2017a-Python-3.6.4
 module load Keras/2.2.4-foss-2017a-Python-3.6.4
 
-if [[ -z "$STEP" ]] || [[ $STEP = "encode" ]];
+if [[ -z "$STEP" ]] || [[ $STEP = "encode" ]]; then
   # 1. Train a model on the training split graphs
   ./bin/train.sh graph/PPI/ppi-train.edgelist labels/ppi-$K.train.json walk/ppi-$K.train.walk emb/ppi-$K.train.emb "-d $K -c" '' "-d $D -c $C -e $E -M $M" "-t $NUM_THREADS -v 2"
 
@@ -26,7 +27,7 @@ if [[ -z "$STEP" ]] || [[ $STEP = "encode" ]];
   python src/main.py encode -g graph/PPI/ppi-test.edgelist -d $K -c -o labels/ppi-$K.test.json
 fi
 
-if [[ -z "$STEP" ]] || [[ $STEP = "evaluate" ]];
+if [[ -z "$STEP" ]] || [[ $STEP = "evaluate" ]]; then
   TRAIN_FEATS="[PPI] TRAIN FEATS $K $NUM_EXPERIMENTS"
   TRAIN_FULL="[PPI] TRAIN FULL $K $NUM_EXPERIMENTS"
   TRAIN_GRAPH="[PPI] TRAIN GRAPH $K $NUM_EXPERIMENTS"
