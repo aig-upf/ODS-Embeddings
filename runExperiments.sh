@@ -46,9 +46,6 @@ then
   for DIST in 1 2;
   do
     sbatch runPPI.sh "experiments/cls/" $DIST '' '' "encode"
-    for EPOCHS in 50 60 70 80 90 100;
-    do
-      sbatch runPPI.sh "experiments/cls/" $DIST $EPOCHS 25 "evaluate"
-    done
+    sbatch runPPI.sh "experiments/cls/" $DIST 50 25 "evaluate"
   done
 fi
