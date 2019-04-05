@@ -43,6 +43,12 @@ fi
 # Run classification experiments
 if  [[ -z "$1" ]] || [[ $1 = "inductive" ]];
 then
-  sbatch bin/runInductiveExperiments.sh '.' 'experiments/cls/' 'bin/train.sh' 'bin/classificationExperiment.sh' 'graph/PPI'    "ppi-train"    '.edgelist' '8' 'models/' '.json' 'label.micro'    "-H 0 -N 0 -a 'tanh' -A 'sigmoid' -L 'categorical_crossentropy' -P 'sgd' -E 25"
-  sbatch bin/runInductiveExperiments.sh '.' 'experiments/cls/' 'bin/train.sh' 'bin/classificationExperiment.sh' 'graph/Reddit' "reddit-train" '.edgelist' '8' 'models/' '.json' 'category.micro' "-H 0 -N 0 -a 'tanh' -A 'sigmoid' -L 'binary_crossentropy' -P 'sgd' -E 30"
+  for DIST in 1 2;
+  do
+    sbatch runPPI.sh "experiments/cls/" $DIST '' '' "encode"
+    for EPOCHS in 50 60 70 80 90 100;
+    do
+      sbatch runPPI.sh "experiments/cls/" $DIST $EPOCHS 25 "evaluate"
+    done
+  done
 fi
